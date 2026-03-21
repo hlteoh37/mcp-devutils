@@ -1,0 +1,23 @@
+{
+  "name": "mcp-devutils",
+  "version": "1.0.0",
+  "description": "MCP server with developer utilities - UUID, hash, base64, timestamps, JWT decode, random strings, URL encode/decode, JSON format, regex test",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "mcp-devutils": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["mcp", "model-context-protocol", "developer-tools", "utilities", "uuid", "hash", "base64", "jwt", "claude", "cursor"],
+  "author": "Hong Teoh",
+  "license": "MIT",
+  "funding": {
+    "type": "buymeacoffee",
+    "url": "https://buymeacoffee.com/gl89tu25lp"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
