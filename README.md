@@ -150,6 +150,10 @@ Compare two semantic versions:
 - `version2`: Second version (required), e.g. `2.0.0`
 - Returns comparison result and parsed components
 
+## See Also
+
+- [mcp-apitools](https://www.npmjs.com/package/mcp-apitools) — 8 API & web dev utilities: HTTP status codes, MIME types, JWT creation, mock data, CORS headers, cookie parsing
+
 ## License
 
 MIT — [Hong Teoh](https://github.com/hlteoh37)
