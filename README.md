@@ -15,6 +15,10 @@ An MCP (Model Context Protocol) server with developer utilities. Use it directly
 | `url_encode` | URL encode or decode strings |
 | `json_format` | Pretty-print or minify JSON |
 | `regex_test` | Test regex patterns against strings |
+| `cron_explain` | Explain cron expressions in plain English + next 5 runs |
+| `hmac` | Generate HMAC signatures (SHA-256, SHA-512, etc.) |
+| `color_convert` | Convert colors between hex, RGB, and HSL |
+| `semver_compare` | Compare two semantic versions |
 
 ## Installation
 
@@ -123,6 +127,28 @@ Test regex patterns:
 - `pattern`: Regex pattern (required)
 - `text`: String to test against (required)
 - `flags`: Regex flags like `g`, `i`, `gi` (optional)
+
+### cron_explain
+Explain a cron expression in plain English and show the next 5 scheduled runs:
+- `expression`: 5-field cron expression (required), e.g. `*/15 9-17 * * 1-5`
+
+### hmac
+Generate an HMAC signature:
+- `message`: Message to sign (required)
+- `key`: Secret key (required)
+- `algorithm`: `sha256`, `sha512`, `sha1`, or `md5` (default: sha256)
+- `encoding`: `hex` or `base64` (default: hex)
+
+### color_convert
+Convert colors between formats:
+- `color`: Color string (required) — accepts `#ff5733`, `rgb(255,87,51)`, or `hsl(11,100%,60%)`
+- Returns all three formats
+
+### semver_compare
+Compare two semantic versions:
+- `version1`: First version (required), e.g. `1.2.3`
+- `version2`: Second version (required), e.g. `2.0.0`
+- Returns comparison result and parsed components
 
 ## License
 

@@ -5,7 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import crypto from "crypto";
 
 const server = new Server(
-  { name: "mcp-devutils", version: "1.0.0" },
+  { name: "mcp-devutils", version: "1.1.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -140,6 +140,62 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             flags: { type: "string", description: "Regex flags (e.g. 'gi' for global case-insensitive)" }
           },
           required: ["pattern", "text"]
+        }
+      },
+      {
+        name: "cron_explain",
+        description: "Explain a cron expression in plain English and show the next 5 run times",
+        inputSchema: {
+          type: "object",
+          properties: {
+            expression: { type: "string", description: "Cron expression (5 fields: minute hour day month weekday)" }
+          },
+          required: ["expression"]
+        }
+      },
+      {
+        name: "hmac",
+        description: "Generate an HMAC signature for a message",
+        inputSchema: {
+          type: "object",
+          properties: {
+            message: { type: "string", description: "Message to sign" },
+            key: { type: "string", description: "Secret key" },
+            algorithm: {
+              type: "string",
+              enum: ["sha256", "sha512", "sha1", "md5"],
+              description: "Hash algorithm (default: sha256)"
+            },
+            encoding: {
+              type: "string",
+              enum: ["hex", "base64"],
+              description: "Output encoding (default: hex)"
+            }
+          },
+          required: ["message", "key"]
+        }
+      },
+      {
+        name: "color_convert",
+        description: "Convert colors between hex, RGB, and HSL formats",
+        inputSchema: {
+          type: "object",
+          properties: {
+            color: { type: "string", description: "Color value (e.g. '#ff5733', 'rgb(255,87,51)', 'hsl(11,100%,60%)')" }
+          },
+          required: ["color"]
+        }
+      },
+      {
+        name: "semver_compare",
+        description: "Compare two semantic versions or check if a version satisfies a range",
+        inputSchema: {
+          type: "object",
+          properties: {
+            version1: { type: "string", description: "First version (e.g. '1.2.3')" },
+            version2: { type: "string", description: "Second version to compare against (e.g. '1.3.0')" }
+          },
+          required: ["version1", "version2"]
         }
       }
     ]
@@ -324,6 +380,201 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+        };
+      }
+
+      case "cron_explain": {
+        const { expression } = args;
+        const parts = expression.trim().split(/\s+/);
+        if (parts.length !== 5) {
+          throw new Error("Cron expression must have 5 fields: minute hour day month weekday");
+        }
+        const [minute, hour, day, month, weekday] = parts;
+        const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        function describeField(val, fieldName) {
+          if (val === "*") return `every ${fieldName}`;
+          if (val.includes("/")) {
+            const [base, step] = val.split("/");
+            return base === "*" ? `every ${step} ${fieldName}s` : `every ${step} ${fieldName}s starting at ${base}`;
+          }
+          if (val.includes(",")) return `${fieldName}s ${val}`;
+          if (val.includes("-")) return `${fieldName}s ${val.split("-")[0]} through ${val.split("-")[1]}`;
+          return `${fieldName} ${val}`;
+        }
+
+        const explanation = [];
+        explanation.push(`Expression: ${expression}`);
+        explanation.push("");
+        explanation.push("Schedule:");
+        explanation.push(`  Minute: ${describeField(minute, "minute")}`);
+        explanation.push(`  Hour: ${describeField(hour, "hour")}`);
+        explanation.push(`  Day: ${describeField(day, "day")}`);
+        explanation.push(`  Month: ${describeField(month, "month")}`);
+        if (weekday !== "*") {
+          const wdNames = weekday.split(",").map(w => WEEKDAYS[parseInt(w)] || w).join(", ");
+          explanation.push(`  Weekday: ${wdNames}`);
+        } else {
+          explanation.push(`  Weekday: every day of the week`);
+        }
+
+        // Compute next 5 run times
+        explanation.push("");
+        explanation.push("Next 5 runs:");
+        function matchesCron(date, parts) {
+          const [m, h, d, mo, wd] = parts;
+          function matches(val, actual, max) {
+            if (val === "*") return true;
+            if (val.includes("/")) {
+              const [base, step] = val.split("/");
+              const start = base === "*" ? 0 : parseInt(base);
+              return (actual - start) % parseInt(step) === 0 && actual >= start;
+            }
+            if (val.includes(",")) return val.split(",").map(Number).includes(actual);
+            if (val.includes("-")) {
+              const [lo, hi] = val.split("-").map(Number);
+              return actual >= lo && actual <= hi;
+            }
+            return parseInt(val) === actual;
+          }
+          return matches(m, date.getMinutes()) &&
+                 matches(h, date.getHours()) &&
+                 matches(d, date.getDate()) &&
+                 matches(mo, date.getMonth() + 1) &&
+                 matches(wd, date.getDay());
+        }
+        const now = new Date();
+        let cursor = new Date(now);
+        cursor.setSeconds(0, 0);
+        cursor.setMinutes(cursor.getMinutes() + 1);
+        let found = 0;
+        const limit = 525960; // max 1 year of minutes
+        for (let i = 0; i < limit && found < 5; i++) {
+          if (matchesCron(cursor, parts)) {
+            explanation.push(`  ${cursor.toISOString()}`);
+            found++;
+          }
+          cursor.setMinutes(cursor.getMinutes() + 1);
+        }
+        if (found === 0) explanation.push("  (no runs found in next year)");
+
+        return {
+          content: [{ type: "text", text: explanation.join("\n") }]
+        };
+      }
+
+      case "hmac": {
+        const { message, key, algorithm = "sha256", encoding = "hex" } = args;
+        const hmac = crypto.createHmac(algorithm, key).update(message, "utf8").digest(encoding);
+        return {
+          content: [{ type: "text", text: `HMAC-${algorithm.toUpperCase()} (${encoding}): ${hmac}` }]
+        };
+      }
+
+      case "color_convert": {
+        const { color } = args;
+        let r, g, b;
+        const hexMatch = color.match(/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+        const rgbMatch = color.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+        const hslMatch = color.match(/^hsl\s*\(\s*(\d+)\s*,\s*(\d+)%?\s*,\s*(\d+)%?\s*\)$/i);
+
+        if (hexMatch) {
+          let hex = hexMatch[1];
+          if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+          r = parseInt(hex.slice(0, 2), 16);
+          g = parseInt(hex.slice(2, 4), 16);
+          b = parseInt(hex.slice(4, 6), 16);
+        } else if (rgbMatch) {
+          r = parseInt(rgbMatch[1]);
+          g = parseInt(rgbMatch[2]);
+          b = parseInt(rgbMatch[3]);
+        } else if (hslMatch) {
+          const h = parseInt(hslMatch[1]) / 360;
+          const s = parseInt(hslMatch[2]) / 100;
+          const l = parseInt(hslMatch[3]) / 100;
+          if (s === 0) {
+            r = g = b = Math.round(l * 255);
+          } else {
+            const hue2rgb = (p, q, t) => {
+              if (t < 0) t += 1;
+              if (t > 1) t -= 1;
+              if (t < 1/6) return p + (q - p) * 6 * t;
+              if (t < 1/2) return q;
+              if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+              return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+            g = Math.round(hue2rgb(p, q, h) * 255);
+            b = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+          }
+        } else {
+          throw new Error("Unrecognized color format. Use hex (#ff5733), rgb(255,87,51), or hsl(11,100%,60%)");
+        }
+
+        // RGB to HSL
+        const rn = r / 255, gn = g / 255, bn = b / 255;
+        const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+        let h, s, l = (max + min) / 2;
+        if (max === min) {
+          h = s = 0;
+        } else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6; break;
+            case gn: h = ((bn - rn) / d + 2) / 6; break;
+            case bn: h = ((rn - gn) / d + 4) / 6; break;
+          }
+        }
+
+        const hex = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+        const output = [
+          `Input: ${color}`,
+          `HEX: ${hex}`,
+          `RGB: rgb(${r}, ${g}, ${b})`,
+          `HSL: hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`
+        ];
+        return {
+          content: [{ type: "text", text: output.join("\n") }]
+        };
+      }
+
+      case "semver_compare": {
+        const { version1, version2 } = args;
+        function parse(v) {
+          const match = v.match(/^v?(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/);
+          if (!match) throw new Error(`Invalid semver: ${v}`);
+          return { major: parseInt(match[1]), minor: parseInt(match[2]), patch: parseInt(match[3]), pre: match[4] || null };
+        }
+        const v1 = parse(version1);
+        const v2 = parse(version2);
+
+        function compare(a, b) {
+          if (a.major !== b.major) return a.major - b.major;
+          if (a.minor !== b.minor) return a.minor - b.minor;
+          if (a.patch !== b.patch) return a.patch - b.patch;
+          if (a.pre && !b.pre) return -1;
+          if (!a.pre && b.pre) return 1;
+          if (a.pre && b.pre) return a.pre < b.pre ? -1 : a.pre > b.pre ? 1 : 0;
+          return 0;
+        }
+
+        const cmp = compare(v1, v2);
+        const relation = cmp < 0 ? "less than" : cmp > 0 ? "greater than" : "equal to";
+        const symbol = cmp < 0 ? "<" : cmp > 0 ? ">" : "=";
+
+        const output = [
+          `${version1} ${symbol} ${version2}`,
+          `${version1} is ${relation} ${version2}`,
+          "",
+          `v1: major=${v1.major} minor=${v1.minor} patch=${v1.patch}${v1.pre ? ` pre=${v1.pre}` : ""}`,
+          `v2: major=${v2.major} minor=${v2.minor} patch=${v2.patch}${v2.pre ? ` pre=${v2.pre}` : ""}`
+        ];
+        return {
+          content: [{ type: "text", text: output.join("\n") }]
         };
       }
 
