@@ -24,6 +24,12 @@ An MCP (Model Context Protocol) server with developer utilities. Use it directly
 | `escape_html` | Escape or unescape HTML entities |
 | `chmod_calc` | Convert between numeric and symbolic Unix permissions |
 | `diff` | Compare two texts and show differences line by line |
+| `number_base` | Convert numbers between decimal, hex, octal, and binary |
+| `lorem_ipsum` | Generate placeholder lorem ipsum text |
+| `word_count` | Count characters, words, lines, and bytes in text |
+| `cidr` | Parse CIDR notation — network, broadcast, host range |
+| `case_convert` | Convert between camelCase, snake_case, PascalCase, kebab-case, CONSTANT_CASE, Title Case |
+| `markdown_toc` | Generate table of contents from markdown headings |
 
 ## Installation
 
@@ -180,6 +186,38 @@ Compare two texts:
 - `text1`: Original text (required)
 - `text2`: Modified text (required)
 - Returns line-by-line diff with added/removed/unchanged summary
+
+### number_base
+Convert numbers between bases:
+- `value`: Number string (required) — prefix `0x` for hex, `0o` for octal, `0b` for binary, or plain decimal
+- Returns decimal, hex, octal, and binary representations
+
+### lorem_ipsum
+Generate placeholder text:
+- `count`: Number of units (default: 1, max: 20)
+- `unit`: `paragraphs`, `sentences`, or `words` (default: paragraphs)
+
+### word_count
+Analyze text:
+- `text`: Input text (required)
+- Returns character count, word count, line count, and byte size
+
+### cidr
+Parse CIDR notation:
+- `notation`: CIDR string (required), e.g. `192.168.1.0/24`
+- Returns network, netmask, broadcast, host range, total hosts
+
+### case_convert
+Convert between naming conventions:
+- `text`: Input text (required), e.g. `myVariableName` or `my-variable-name`
+- `to`: Target case (required) — `camel`, `snake`, `pascal`, `kebab`, `constant`, or `title`
+- Returns converted text plus all format variants
+
+### markdown_toc
+Generate a table of contents:
+- `markdown`: Markdown text (required)
+- `max_depth`: Maximum heading level to include (default: 3)
+- Returns formatted TOC with anchor links
 
 ## See Also
 

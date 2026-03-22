@@ -5,7 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import crypto from "crypto";
 
 const server = new Server(
-  { name: "mcp-devutils", version: "1.2.0" },
+  { name: "mcp-devutils", version: "1.3.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -258,6 +258,82 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             text2: { type: "string", description: "Second text (modified)" }
           },
           required: ["text1", "text2"]
+        }
+      },
+      {
+        name: "number_base",
+        description: "Convert numbers between decimal, hexadecimal, octal, and binary",
+        inputSchema: {
+          type: "object",
+          properties: {
+            value: { type: "string", description: "Number to convert (prefix with 0x for hex, 0o for octal, 0b for binary, or plain decimal)" }
+          },
+          required: ["value"]
+        }
+      },
+      {
+        name: "lorem_ipsum",
+        description: "Generate placeholder lorem ipsum text",
+        inputSchema: {
+          type: "object",
+          properties: {
+            count: { type: "number", description: "Number of units to generate (default: 1)" },
+            unit: {
+              type: "string",
+              enum: ["paragraphs", "sentences", "words"],
+              description: "Unit type (default: paragraphs)"
+            }
+          }
+        }
+      },
+      {
+        name: "word_count",
+        description: "Count characters, words, lines, and bytes in text",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to analyze" }
+          },
+          required: ["text"]
+        }
+      },
+      {
+        name: "cidr",
+        description: "Parse CIDR notation and show network address, broadcast, host range, and number of hosts",
+        inputSchema: {
+          type: "object",
+          properties: {
+            notation: { type: "string", description: "CIDR notation (e.g. '192.168.1.0/24')" }
+          },
+          required: ["notation"]
+        }
+      },
+      {
+        name: "case_convert",
+        description: "Convert text between camelCase, snake_case, PascalCase, kebab-case, CONSTANT_CASE, and Title Case",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to convert (e.g. 'myVariableName' or 'my-variable-name')" },
+            to: {
+              type: "string",
+              enum: ["camel", "snake", "pascal", "kebab", "constant", "title"],
+              description: "Target case format"
+            }
+          },
+          required: ["text", "to"]
+        }
+      },
+      {
+        name: "markdown_toc",
+        description: "Generate a table of contents from markdown headings",
+        inputSchema: {
+          type: "object",
+          properties: {
+            markdown: { type: "string", description: "Markdown text to extract headings from" },
+            max_depth: { type: "number", description: "Maximum heading depth to include (default: 3)" }
+          },
+          required: ["markdown"]
         }
       }
     ]
@@ -786,6 +862,174 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         const summary = `\n--- Summary: ${added} added, ${removed} removed, ${unchanged} unchanged`;
         return { content: [{ type: "text", text: output.join("\n") + summary }] };
+      }
+
+      case "number_base": {
+        const { value } = args;
+        let num;
+        const v = value.trim();
+        if (v.startsWith("0x") || v.startsWith("0X")) num = parseInt(v, 16);
+        else if (v.startsWith("0o") || v.startsWith("0O")) num = parseInt(v.slice(2), 8);
+        else if (v.startsWith("0b") || v.startsWith("0B")) num = parseInt(v.slice(2), 2);
+        else num = parseInt(v, 10);
+        if (isNaN(num)) throw new Error(`Invalid number: ${value}`);
+        const output = [
+          `Decimal:     ${num}`,
+          `Hexadecimal: 0x${num.toString(16).toUpperCase()}`,
+          `Octal:       0o${num.toString(8)}`,
+          `Binary:      0b${num.toString(2)}`
+        ];
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "lorem_ipsum": {
+        const { count = 1, unit = "paragraphs" } = args || {};
+        const sentences = [
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+          "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.",
+          "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.",
+          "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.",
+          "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet.",
+          "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit.",
+          "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse.",
+          "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis."
+        ];
+        const n = Math.min(Math.max(1, count), 20);
+        let result;
+        if (unit === "words") {
+          const allWords = sentences.join(" ").split(/\s+/);
+          const words = [];
+          for (let i = 0; i < n; i++) words.push(allWords[i % allWords.length]);
+          result = words.join(" ");
+        } else if (unit === "sentences") {
+          const out = [];
+          for (let i = 0; i < n; i++) out.push(sentences[i % sentences.length]);
+          result = out.join(" ");
+        } else {
+          const paras = [];
+          for (let i = 0; i < n; i++) {
+            const start = (i * 3) % sentences.length;
+            const para = [];
+            for (let j = 0; j < 5; j++) para.push(sentences[(start + j) % sentences.length]);
+            paras.push(para.join(" "));
+          }
+          result = paras.join("\n\n");
+        }
+        return { content: [{ type: "text", text: result }] };
+      }
+
+      case "word_count": {
+        const { text } = args;
+        const chars = text.length;
+        const charsNoSpaces = text.replace(/\s/g, "").length;
+        const words = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+        const lines = text.split("\n").length;
+        const bytes = Buffer.byteLength(text, "utf8");
+        const output = [
+          `Characters: ${chars}`,
+          `Characters (no spaces): ${charsNoSpaces}`,
+          `Words: ${words}`,
+          `Lines: ${lines}`,
+          `Bytes (UTF-8): ${bytes}`
+        ];
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "cidr": {
+        const { notation } = args;
+        const match = notation.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)$/);
+        if (!match) throw new Error("Invalid CIDR notation. Use format: 192.168.1.0/24");
+        const octets = [parseInt(match[1]), parseInt(match[2]), parseInt(match[3]), parseInt(match[4])];
+        const prefix = parseInt(match[5]);
+        if (octets.some(o => o < 0 || o > 255) || prefix < 0 || prefix > 32) {
+          throw new Error("Invalid IP address or prefix length");
+        }
+        const ip = ((octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]) >>> 0;
+        const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
+        const network = (ip & mask) >>> 0;
+        const broadcast = (network | ~mask) >>> 0;
+        const firstHost = prefix >= 31 ? network : (network + 1) >>> 0;
+        const lastHost = prefix >= 31 ? broadcast : (broadcast - 1) >>> 0;
+        const hostCount = prefix >= 31 ? (prefix === 32 ? 1 : 2) : Math.pow(2, 32 - prefix) - 2;
+        const toIP = (n) => `${(n >>> 24) & 255}.${(n >>> 16) & 255}.${(n >>> 8) & 255}.${n & 255}`;
+        const output = [
+          `CIDR: ${notation}`,
+          `Network: ${toIP(network)}`,
+          `Netmask: ${toIP(mask)}`,
+          `Broadcast: ${toIP(broadcast)}`,
+          `First host: ${toIP(firstHost)}`,
+          `Last host: ${toIP(lastHost)}`,
+          `Total hosts: ${hostCount}`,
+          `Prefix length: /${prefix}`
+        ];
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "case_convert": {
+        const { text, to } = args;
+        // Split input into words regardless of input format
+        const words = text
+          .replace(/([a-z])([A-Z])/g, "$1 $2") // camelCase splits
+          .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2") // ABCDef -> ABC Def
+          .replace(/[-_]/g, " ")
+          .split(/\s+/)
+          .filter(w => w.length > 0)
+          .map(w => w.toLowerCase());
+        let result;
+        switch (to) {
+          case "camel":
+            result = words[0] + words.slice(1).map(w => w[0].toUpperCase() + w.slice(1)).join("");
+            break;
+          case "pascal":
+            result = words.map(w => w[0].toUpperCase() + w.slice(1)).join("");
+            break;
+          case "snake":
+            result = words.join("_");
+            break;
+          case "kebab":
+            result = words.join("-");
+            break;
+          case "constant":
+            result = words.map(w => w.toUpperCase()).join("_");
+            break;
+          case "title":
+            result = words.map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+            break;
+          default:
+            throw new Error(`Unknown case: ${to}`);
+        }
+        const all = {
+          camelCase: words[0] + words.slice(1).map(w => w[0].toUpperCase() + w.slice(1)).join(""),
+          PascalCase: words.map(w => w[0].toUpperCase() + w.slice(1)).join(""),
+          snake_case: words.join("_"),
+          "kebab-case": words.join("-"),
+          CONSTANT_CASE: words.map(w => w.toUpperCase()).join("_"),
+          "Title Case": words.map(w => w[0].toUpperCase() + w.slice(1)).join(" ")
+        };
+        const output = [`Result: ${result}`, "", "All formats:"];
+        for (const [k, v] of Object.entries(all)) output.push(`  ${k}: ${v}`);
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "markdown_toc": {
+        const { markdown, max_depth = 3 } = args;
+        const lines = markdown.split("\n");
+        const toc = [];
+        for (const line of lines) {
+          const match = line.match(/^(#{1,6})\s+(.+)$/);
+          if (match) {
+            const level = match[1].length;
+            if (level > max_depth) continue;
+            const text = match[2].replace(/[*_`\[\]]/g, "").trim();
+            const anchor = text.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+            const indent = "  ".repeat(level - 1);
+            toc.push(`${indent}- [${text}](#${anchor})`);
+          }
+        }
+        if (toc.length === 0) return { content: [{ type: "text", text: "No headings found." }] };
+        return { content: [{ type: "text", text: toc.join("\n") }] };
       }
 
       default:
