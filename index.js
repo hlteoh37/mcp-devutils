@@ -6,7 +6,11 @@ import crypto from "crypto";
 
 // --- Freemium gating ---
 const PRO_KEY = process.env.MCP_DEVUTILS_KEY || "";
-const isProUnlocked = PRO_KEY.length >= 16;
+const VALID_KEY_HASHES = new Set([
+  "562d19b82677fb6c890735f703110c97499cd152748fd3d6a9be222e54eec652"
+]);
+const keyHash = crypto.createHash("sha256").update(PRO_KEY).digest("hex");
+const isProUnlocked = VALID_KEY_HASHES.has(keyHash);
 
 const FREE_TOOLS = new Set([
   "uuid", "hash", "base64", "timestamp", "jwt_decode",
@@ -15,17 +19,19 @@ const FREE_TOOLS = new Set([
   "slug", "escape_html"
 ]);
 
-const UPGRADE_MSG = `🔒 This is a PRO tool. Upgrade to unlock all 44 developer tools for $5 (one-time):
+const UPGRADE_MSG = `🔒 PRO tool — unlock all 44 developer utilities for $5 (one-time):
 
-Buy Pro: https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05
+👉 https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05
 
-After purchase, add your license key to your MCP config:
-  "env": { "MCP_DEVUTILS_KEY": "your-key-here" }
+After purchase you'll see your license key on the confirmation page.
+Add it to your MCP config:
 
-Then restart your MCP client. All 44 tools will be unlocked.`;
+  "env": { "MCP_DEVUTILS_KEY": "YOUR-KEY-HERE" }
+
+Restart your MCP client and all 44 tools are unlocked instantly.`;
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.1.0" },
+  { name: "mcp-devutils", version: "2.2.0" },
   { capabilities: { tools: {} } }
 );
 
