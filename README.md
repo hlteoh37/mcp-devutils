@@ -17,10 +17,10 @@ MCP server with **44 developer utilities** for Claude Desktop, Cursor, and any M
 }
 ```
 
-## Unlock Pro (29 extra tools)
+## Unlock Pro (29 extra tools) — $5 one-time
 
-1. Support development at [buymeacoffee.com/gl89tu25lp](https://buymeacoffee.com/gl89tu25lp)
-2. Get your license key in the confirmation
+1. **[Buy Pro License ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — instant key delivery
+2. Copy your license key from the confirmation page
 3. Add it to your MCP config:
 
 ```json
@@ -97,7 +97,8 @@ Only requires `@modelcontextprotocol/sdk`. All tools use Node.js built-ins.
 
 ## Support
 
-- [Buy me a coffee](https://buymeacoffee.com/gl89tu25lp) — unlocks Pro tools!
+- **[Get Pro ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — unlock all 44 tools
+- [Buy me a coffee](https://buymeacoffee.com/gl89tu25lp)
 - [Tip via Stripe ($3)](https://buy.stripe.com/dRm8wP8R295Z9VyeN59Zm00)
 
 ## License

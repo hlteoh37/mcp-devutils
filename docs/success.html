@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mcp-devutils Pro — Thank You!</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 48px; max-width: 600px; width: 90%; text-align: center; }
+    h1 { font-size: 28px; margin-bottom: 8px; color: #58a6ff; }
+    .subtitle { color: #8b949e; margin-bottom: 32px; }
+    .key-box { background: #0d1117; border: 2px solid #238636; border-radius: 8px; padding: 16px; margin: 24px 0; font-family: 'SF Mono', SFMono-Regular, monospace; font-size: 18px; color: #7ee787; word-break: break-all; cursor: pointer; position: relative; }
+    .key-box:hover { border-color: #7ee787; }
+    .copied { position: absolute; top: -28px; right: 0; font-size: 13px; color: #7ee787; opacity: 0; transition: opacity 0.3s; }
+    .copied.show { opacity: 1; }
+    .steps { text-align: left; margin: 24px 0; }
+    .steps h3 { margin-bottom: 12px; color: #f0f6fc; }
+    .steps ol { padding-left: 20px; }
+    .steps li { margin-bottom: 12px; line-height: 1.5; color: #8b949e; }
+    .steps code { background: #0d1117; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #e6edf3; font-size: 14px; }
+    pre { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 16px; text-align: left; overflow-x: auto; margin: 16px 0; font-size: 13px; line-height: 1.5; color: #e6edf3; }
+    .check { font-size: 48px; margin-bottom: 16px; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .footer { margin-top: 32px; color: #484f58; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="check">&#10003;</div>
+    <h1>Payment Successful!</h1>
+    <p class="subtitle">You've unlocked all 44 tools in mcp-devutils Pro</p>
+
+    <p style="margin-bottom: 8px; color: #8b949e;">Your license key:</p>
+    <div class="key-box" id="keyBox" onclick="copyKey()">
+      <span id="licenseKey"></span>
+      <span class="copied" id="copiedMsg">Copied!</span>
+    </div>
+    <p style="font-size: 13px; color: #484f58;">Click to copy</p>
+
+    <div class="steps">
+      <h3>Activate in 2 steps:</h3>
+      <ol>
+        <li>Open your MCP config file (<code>claude_desktop_config.json</code> or similar)</li>
+        <li>Add your key to the devutils config:</li>
+      </ol>
+      <pre>{
+  "mcpServers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"],
+      "env": {
+        "MCP_DEVUTILS_KEY": "<span id="keyInConfig"></span>"
+      }
+    }
+  }
+}</pre>
+      <ol start="3">
+        <li>Restart your AI assistant — all 44 tools are now active!</li>
+      </ol>
+    </div>
+
+    <p style="color: #8b949e; font-size: 14px;">Save this page or your key somewhere safe. If you lose it, email the address on your receipt and we'll resend it.</p>
+
+    <div class="footer">
+      <p><a href="https://www.npmjs.com/package/mcp-devutils">npm</a> &middot; <a href="https://github.com/hlteoh37/mcp-devutils">GitHub</a></p>
+    </div>
+  </div>
+
+  <script>
+    // Generate a deterministic-looking pro key from timestamp + random
+    function generateKey() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const segments = [];
+      for (let s = 0; s < 4; s++) {
+        let seg = '';
+        for (let i = 0; i < 5; i++) {
+          seg += chars[Math.floor(Math.random() * chars.length)];
+        }
+        segments.push(seg);
+      }
+      return 'PRO-' + segments.join('-');
+    }
+
+    const key = generateKey();
+    document.getElementById('licenseKey').textContent = key;
+    document.getElementById('keyInConfig').textContent = key;
+
+    function copyKey() {
+      navigator.clipboard.writeText(key).then(() => {
+        const msg = document.getElementById('copiedMsg');
+        msg.classList.add('show');
+        setTimeout(() => msg.classList.remove('show'), 2000);
+      });
+    }
+  </script>
+</body>
+</html>

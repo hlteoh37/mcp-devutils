@@ -15,17 +15,17 @@ const FREE_TOOLS = new Set([
   "slug", "escape_html"
 ]);
 
-const UPGRADE_MSG = `🔒 This is a PRO tool. Upgrade to unlock 29 additional developer tools!
+const UPGRADE_MSG = `🔒 This is a PRO tool. Upgrade to unlock all 44 developer tools for $5 (one-time):
 
-Get your license key: https://buymeacoffee.com/gl89tu25lp
+Buy Pro: https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05
 
-After purchase, set your key:
-  export MCP_DEVUTILS_KEY="your-key-here"
+After purchase, add your license key to your MCP config:
+  "env": { "MCP_DEVUTILS_KEY": "your-key-here" }
 
 Then restart your MCP client. All 44 tools will be unlocked.`;
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.0.0" },
+  { name: "mcp-devutils", version: "2.1.0" },
   { capabilities: { tools: {} } }
 );
 

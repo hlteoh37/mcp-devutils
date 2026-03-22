@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mcp-devutils — 44 Developer Tools for Claude, Cursor &amp; AI Assistants</title>
+  <meta name="description" content="MCP server with 44 developer utilities. UUID, hash, JWT, JSON, regex, CSV, encryption and more — right inside your AI assistant.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; }
+    .hero { text-align: center; padding: 80px 20px 60px; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 48px; margin-bottom: 16px; }
+    .hero h1 span { color: #58a6ff; }
+    .hero p { font-size: 20px; color: #8b949e; margin-bottom: 32px; }
+    .install-box { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; max-width: 520px; margin: 0 auto 24px; text-align: left; }
+    .install-box code { font-family: 'SF Mono', monospace; font-size: 14px; color: #7ee787; }
+    .install-box .label { font-size: 13px; color: #484f58; margin-bottom: 8px; }
+    .cta { display: inline-block; background: #238636; color: #fff; padding: 14px 32px; border-radius: 8px; font-size: 18px; font-weight: 600; text-decoration: none; margin: 8px; transition: background 0.2s; }
+    .cta:hover { background: #2ea043; }
+    .cta-secondary { background: transparent; border: 1px solid #30363d; color: #e6edf3; }
+    .cta-secondary:hover { background: #161b22; }
+    .tiers { display: flex; gap: 24px; max-width: 800px; margin: 60px auto; padding: 0 20px; flex-wrap: wrap; justify-content: center; }
+    .tier { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 32px; flex: 1; min-width: 300px; max-width: 380px; }
+    .tier.pro { border-color: #238636; }
+    .tier h2 { margin-bottom: 8px; }
+    .tier .price { font-size: 36px; font-weight: 700; margin-bottom: 4px; }
+    .tier .price span { font-size: 16px; color: #8b949e; font-weight: 400; }
+    .tier .desc { color: #8b949e; margin-bottom: 20px; font-size: 14px; }
+    .tier ul { list-style: none; padding: 0; }
+    .tier li { padding: 6px 0; font-size: 14px; color: #8b949e; }
+    .tier li::before { content: "✓ "; color: #7ee787; font-weight: bold; }
+    .tier .cta { display: block; text-align: center; margin-top: 20px; }
+    .tools { max-width: 800px; margin: 60px auto; padding: 0 20px; }
+    .tools h2 { text-align: center; margin-bottom: 32px; font-size: 28px; }
+    .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .tool { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; font-size: 13px; }
+    .tool .name { font-family: monospace; color: #58a6ff; font-weight: 600; }
+    .tool .desc { color: #8b949e; font-size: 12px; margin-top: 4px; }
+    .tool.pro-tool { border-color: #30363d; opacity: 0.7; }
+    .tool.pro-tool .name::after { content: " PRO"; font-size: 10px; color: #f0883e; font-family: sans-serif; }
+    footer { text-align: center; padding: 60px 20px; color: #484f58; font-size: 13px; }
+    footer a { color: #58a6ff; text-decoration: none; }
+    @media (max-width: 640px) { .hero h1 { font-size: 32px; } .tiers { flex-direction: column; align-items: center; } }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1><span>44</span> Developer Tools<br>Inside Your AI Assistant</h1>
+  <p>MCP server for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI. UUID, hash, JWT, JSON, regex, encryption and more.</p>
+
+  <div class="install-box">
+    <div class="label">Install in one line:</div>
+    <code>npx -y mcp-devutils</code>
+  </div>
+
+  <a href="https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05" class="cta">Get Pro — $5</a>
+  <a href="https://github.com/hlteoh37/mcp-devutils" class="cta cta-secondary">GitHub</a>
+</div>
+
+<div class="tiers">
+  <div class="tier">
+    <h2>Free</h2>
+    <div class="price">$0</div>
+    <div class="desc">15 essential tools, forever free</div>
+    <ul>
+      <li>UUID generation (batch)</li>
+      <li>Hash (MD5, SHA1, SHA256)</li>
+      <li>Base64 encode/decode</li>
+      <li>Timestamp conversion</li>
+      <li>JWT decode</li>
+      <li>Random string generation</li>
+      <li>URL encode/decode</li>
+      <li>JSON format/minify</li>
+      <li>Regex testing</li>
+      <li>Cron expression explain</li>
+      <li>HMAC signatures</li>
+      <li>Color conversion</li>
+      <li>HTTP status lookup</li>
+      <li>URL slug generator</li>
+      <li>HTML escape/unescape</li>
+    </ul>
+    <a href="https://github.com/hlteoh37/mcp-devutils" class="cta cta-secondary">Install Free</a>
+  </div>
+  <div class="tier pro">
+    <h2>Pro</h2>
+    <div class="price">$5 <span>one-time</span></div>
+    <div class="desc">All 44 tools, lifetime access</div>
+    <ul>
+      <li>Everything in Free, plus:</li>
+      <li>AES encryption/decryption</li>
+      <li>RSA key generation</li>
+      <li>JWT creation &amp; signing</li>
+      <li>JSON diff &amp; query (JSONPath)</li>
+      <li>CSV ↔ JSON conversion</li>
+      <li>SQL formatting</li>
+      <li>Semantic version compare</li>
+      <li>Text diff</li>
+      <li>CIDR calculator</li>
+      <li>Password strength analysis</li>
+      <li>Markdown TOC generator</li>
+      <li>...and 18 more tools</li>
+    </ul>
+    <a href="https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05" class="cta">Get Pro — $5</a>
+  </div>
+</div>
+
+<div class="tools">
+  <h2>All 44 Tools</h2>
+  <div class="tool-grid">
+    <div class="tool"><div class="name">uuid</div><div class="desc">Generate UUID v4</div></div>
+    <div class="tool"><div class="name">hash</div><div class="desc">MD5, SHA1, SHA256</div></div>
+    <div class="tool"><div class="name">base64</div><div class="desc">Encode/decode</div></div>
+    <div class="tool"><div class="name">timestamp</div><div class="desc">Unix ↔ ISO 8601</div></div>
+    <div class="tool"><div class="name">jwt_decode</div><div class="desc">Decode JWT tokens</div></div>
+    <div class="tool"><div class="name">random_string</div><div class="desc">Random strings</div></div>
+    <div class="tool"><div class="name">url_encode</div><div class="desc">URL encode/decode</div></div>
+    <div class="tool"><div class="name">json_format</div><div class="desc">Pretty-print/minify</div></div>
+    <div class="tool"><div class="name">regex_test</div><div class="desc">Test regex patterns</div></div>
+    <div class="tool"><div class="name">cron_explain</div><div class="desc">Explain cron</div></div>
+    <div class="tool"><div class="name">hmac</div><div class="desc">HMAC signatures</div></div>
+    <div class="tool"><div class="name">color_convert</div><div class="desc">Hex/RGB/HSL</div></div>
+    <div class="tool"><div class="name">http_status</div><div class="desc">Status codes</div></div>
+    <div class="tool"><div class="name">slug</div><div class="desc">URL-safe slugs</div></div>
+    <div class="tool"><div class="name">escape_html</div><div class="desc">HTML entities</div></div>
+    <div class="tool pro-tool"><div class="name">semver_compare</div><div class="desc">Compare versions</div></div>
+    <div class="tool pro-tool"><div class="name">chmod_calc</div><div class="desc">Permission calc</div></div>
+    <div class="tool pro-tool"><div class="name">diff</div><div class="desc">Text comparison</div></div>
+    <div class="tool pro-tool"><div class="name">number_base</div><div class="desc">Dec/hex/oct/bin</div></div>
+    <div class="tool pro-tool"><div class="name">lorem_ipsum</div><div class="desc">Placeholder text</div></div>
+    <div class="tool pro-tool"><div class="name">word_count</div><div class="desc">Chars/words/lines</div></div>
+    <div class="tool pro-tool"><div class="name">cidr</div><div class="desc">Network calculator</div></div>
+    <div class="tool pro-tool"><div class="name">case_convert</div><div class="desc">camel/snake/kebab</div></div>
+    <div class="tool pro-tool"><div class="name">markdown_toc</div><div class="desc">Generate TOC</div></div>
+    <div class="tool pro-tool"><div class="name">env_parse</div><div class="desc">Parse .env files</div></div>
+    <div class="tool pro-tool"><div class="name">ip_info</div><div class="desc">IP analysis</div></div>
+    <div class="tool pro-tool"><div class="name">password_strength</div><div class="desc">Entropy analysis</div></div>
+    <div class="tool pro-tool"><div class="name">data_size</div><div class="desc">Bytes converter</div></div>
+    <div class="tool pro-tool"><div class="name">string_escape</div><div class="desc">Multi-format escape</div></div>
+    <div class="tool pro-tool"><div class="name">nanoid</div><div class="desc">Compact unique IDs</div></div>
+    <div class="tool pro-tool"><div class="name">csv_json</div><div class="desc">CSV ↔ JSON</div></div>
+    <div class="tool pro-tool"><div class="name">hex_encode</div><div class="desc">Hex encode/decode</div></div>
+    <div class="tool pro-tool"><div class="name">jwt_create</div><div class="desc">Create JWTs</div></div>
+    <div class="tool pro-tool"><div class="name">json_diff</div><div class="desc">Compare JSON</div></div>
+    <div class="tool pro-tool"><div class="name">json_query</div><div class="desc">JSONPath queries</div></div>
+    <div class="tool pro-tool"><div class="name">regex_replace</div><div class="desc">Regex replace</div></div>
+    <div class="tool pro-tool"><div class="name">sql_format</div><div class="desc">Format SQL</div></div>
+    <div class="tool pro-tool"><div class="name">epoch_convert</div><div class="desc">Epoch timestamps</div></div>
+    <div class="tool pro-tool"><div class="name">aes_encrypt</div><div class="desc">AES encryption</div></div>
+    <div class="tool pro-tool"><div class="name">aes_decrypt</div><div class="desc">AES decryption</div></div>
+    <div class="tool pro-tool"><div class="name">rsa_keygen</div><div class="desc">RSA key pairs</div></div>
+    <div class="tool pro-tool"><div class="name">scrypt_hash</div><div class="desc">Password hashing</div></div>
+    <div class="tool pro-tool"><div class="name">char_info</div><div class="desc">Unicode details</div></div>
+    <div class="tool pro-tool"><div class="name">dns_lookup</div><div class="desc">DNS resolution</div></div>
+  </div>
+</div>
+
+<footer>
+  <p>Built by <a href="https://github.com/hlteoh37">hlteoh37</a> &middot; <a href="https://www.npmjs.com/package/mcp-devutils">npm</a> &middot; <a href="https://github.com/hlteoh37/mcp-devutils">GitHub</a> &middot; <a href="https://buymeacoffee.com/gl89tu25lp">Buy me a coffee</a></p>
+</footer>
+
+</body>
+</html>
