@@ -7,7 +7,9 @@ import crypto from "crypto";
 // --- Freemium gating ---
 const PRO_KEY = process.env.MCP_DEVUTILS_KEY || "";
 const VALID_KEY_HASHES = new Set([
-  "562d19b82677fb6c890735f703110c97499cd152748fd3d6a9be222e54eec652"
+  "562d19b82677fb6c890735f703110c97499cd152748fd3d6a9be222e54eec652",
+  "b11b51398df70985c1509f8c16b2884db1598eaebe65b111c33d6f1f12e4ca5e",
+  "41f508b3b8123f0d37a48db86bc0d1fec66435bb690028b6daa9c6041eb860db"
 ]);
 const keyHash = crypto.createHash("sha256").update(PRO_KEY).digest("hex");
 const isProUnlocked = VALID_KEY_HASHES.has(keyHash);
@@ -31,7 +33,7 @@ Add it to your MCP config:
 Restart your MCP client and all 44 tools are unlocked instantly.`;
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.2.0" },
+  { name: "mcp-devutils", version: "2.2.1" },
   { capabilities: { tools: {} } }
 );
 

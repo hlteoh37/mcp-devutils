@@ -69,21 +69,12 @@
   </div>
 
   <script>
-    // Generate a deterministic-looking pro key from timestamp + random
-    function generateKey() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      const segments = [];
-      for (let s = 0; s < 4; s++) {
-        let seg = '';
-        for (let i = 0; i < 5; i++) {
-          seg += chars[Math.floor(Math.random() * chars.length)];
-        }
-        segments.push(seg);
-      }
-      return 'PRO-' + segments.join('-');
-    }
-
-    const key = generateKey();
+    // Fixed license keys that are validated by mcp-devutils
+    const VALID_KEYS = [
+      'PRO-DEVUT-1LS44-TOOLS-UNLKD',
+      'PRO-MCP44-DEVUT-TOOLS-XPREM'
+    ];
+    const key = VALID_KEYS[Math.floor(Math.random() * VALID_KEYS.length)];
     document.getElementById('licenseKey').textContent = key;
     document.getElementById('keyInConfig').textContent = key;
 
