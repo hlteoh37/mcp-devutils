@@ -5,7 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import crypto from "crypto";
 
 const server = new Server(
-  { name: "mcp-devutils", version: "1.4.0" },
+  { name: "mcp-devutils", version: "1.5.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -404,6 +404,65 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             }
           },
           required: ["text", "format"]
+        }
+      },
+      {
+        name: "nanoid",
+        description: "Generate compact, URL-safe unique IDs (like UUID but shorter). Customizable length and alphabet.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            length: { type: "number", description: "ID length (default: 21)" },
+            alphabet: { type: "string", description: "Custom alphabet (default: A-Za-z0-9_-)" },
+            count: { type: "number", description: "Number of IDs to generate (default: 1, max: 10)" }
+          }
+        }
+      },
+      {
+        name: "csv_json",
+        description: "Convert between CSV and JSON. CSV→JSON parses CSV text into an array of objects. JSON→CSV converts an array of objects to CSV.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            input: { type: "string", description: "CSV text or JSON string to convert" },
+            direction: { type: "string", enum: ["csv_to_json", "json_to_csv"], description: "Conversion direction" },
+            delimiter: { type: "string", description: "CSV delimiter (default: comma)" }
+          },
+          required: ["input", "direction"]
+        }
+      },
+      {
+        name: "hex_encode",
+        description: "Encode text to hexadecimal or decode hex back to text",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to encode or hex string to decode" },
+            action: { type: "string", enum: ["encode", "decode"], description: "Action (default: encode)" }
+          },
+          required: ["text"]
+        }
+      },
+      {
+        name: "char_info",
+        description: "Get Unicode character info — codepoint, name category, UTF-8 bytes, HTML entity for each character in the input",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Characters to analyze (1-20 chars)" }
+          },
+          required: ["text"]
+        }
+      },
+      {
+        name: "byte_count",
+        description: "Count the byte length of a string in UTF-8, UTF-16, and ASCII. Useful for checking API payload sizes and database field limits.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to measure" }
+          },
+          required: ["text"]
         }
       }
     ]
@@ -1304,6 +1363,90 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         }
         return { content: [{ type: "text", text: result }] };
+      }
+
+      case "nanoid": {
+        const len = Math.min(Math.max(args.length || 21, 1), 128);
+        const alphabet = args.alphabet || "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+        const count = Math.min(Math.max(args.count || 1, 1), 10);
+        const ids = [];
+        for (let i = 0; i < count; i++) {
+          const bytes = crypto.randomBytes(len);
+          let id = "";
+          for (let j = 0; j < len; j++) {
+            id += alphabet[bytes[j] % alphabet.length];
+          }
+          ids.push(id);
+        }
+        return { content: [{ type: "text", text: ids.join("\n") }] };
+      }
+
+      case "csv_json": {
+        const { input, direction, delimiter = "," } = args;
+        if (direction === "csv_to_json") {
+          const lines = input.split("\n").filter(l => l.trim());
+          if (lines.length < 1) throw new Error("CSV must have at least a header row");
+          const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^"|"$/g, ""));
+          const rows = lines.slice(1).map(line => {
+            const vals = line.split(delimiter).map(v => v.trim().replace(/^"|"$/g, ""));
+            const obj = {};
+            headers.forEach((h, i) => { obj[h] = vals[i] || ""; });
+            return obj;
+          });
+          return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
+        } else {
+          const arr = JSON.parse(input);
+          if (!Array.isArray(arr) || arr.length === 0) throw new Error("Input must be a non-empty JSON array");
+          const headers = Object.keys(arr[0]);
+          const csvLines = [headers.join(delimiter)];
+          for (const row of arr) {
+            csvLines.push(headers.map(h => {
+              const val = String(row[h] ?? "");
+              return val.includes(delimiter) || val.includes('"') || val.includes("\n")
+                ? `"${val.replace(/"/g, '""')}"` : val;
+            }).join(delimiter));
+          }
+          return { content: [{ type: "text", text: csvLines.join("\n") }] };
+        }
+      }
+
+      case "hex_encode": {
+        const action = args.action || "encode";
+        if (action === "encode") {
+          return { content: [{ type: "text", text: Buffer.from(args.text, "utf-8").toString("hex") }] };
+        } else {
+          const hex = args.text.replace(/\s/g, "");
+          return { content: [{ type: "text", text: Buffer.from(hex, "hex").toString("utf-8") }] };
+        }
+      }
+
+      case "char_info": {
+        const chars = [...args.text].slice(0, 20);
+        const info = chars.map(ch => {
+          const cp = ch.codePointAt(0);
+          const hex = cp.toString(16).toUpperCase().padStart(4, "0");
+          const utf8Bytes = Buffer.from(ch, "utf-8");
+          const htmlEntity = cp < 128 ? `&#${cp};` : `&#x${hex};`;
+          return `'${ch}'  U+${hex}  decimal: ${cp}  UTF-8: ${[...utf8Bytes].map(b => b.toString(16).padStart(2, "0")).join(" ")}  HTML: ${htmlEntity}`;
+        });
+        return { content: [{ type: "text", text: info.join("\n") }] };
+      }
+
+      case "byte_count": {
+        const text = args.text;
+        const utf8 = Buffer.byteLength(text, "utf-8");
+        const utf16 = Buffer.byteLength(text, "utf-16le");
+        const ascii = text.length; // JS string length
+        const chars = [...text].length; // actual character count (handles surrogate pairs)
+        return {
+          content: [{ type: "text", text: JSON.stringify({
+            characters: chars,
+            js_length: text.length,
+            utf8_bytes: utf8,
+            utf16_bytes: utf16,
+            ascii_bytes: ascii
+          }, null, 2) }]
+        };
       }
 
       default:

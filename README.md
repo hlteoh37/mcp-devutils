@@ -1,6 +1,6 @@
 # mcp-devutils
 
-MCP server with **30 developer utilities** for Claude Desktop, Cursor, and any MCP-compatible AI assistant.
+MCP server with **35 developer utilities** for Claude Desktop, Cursor, and any MCP-compatible AI assistant.
 
 ## Install
 
@@ -15,7 +15,7 @@ MCP server with **30 developer utilities** for Claude Desktop, Cursor, and any M
 }
 ```
 
-## Tools (30)
+## Tools (35)
 
 | Tool | Description |
 |------|-------------|
@@ -48,6 +48,11 @@ MCP server with **30 developer utilities** for Claude Desktop, Cursor, and any M
 | `password_strength` | Analyze password entropy and strength |
 | `data_size` | Convert between bytes/KB/MB/GB/TB (SI + IEC) |
 | `string_escape` | Escape strings for JSON/CSV/regex/SQL/shell |
+| `nanoid` | Generate compact, URL-safe unique IDs |
+| `csv_json` | Convert between CSV and JSON |
+| `hex_encode` | Hex encode/decode text |
+| `char_info` | Unicode character info (codepoint, UTF-8 bytes, HTML entity) |
+| `byte_count` | Count string bytes in UTF-8/UTF-16/ASCII |
 
 ## Zero dependencies
 

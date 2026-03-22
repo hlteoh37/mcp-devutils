@@ -1,7 +1,7 @@
 {
   "name": "mcp-devutils",
-  "version": "1.4.0",
-  "description": "MCP server with 30 developer utilities - UUID, hash, HMAC, base64, timestamps, JWT decode, random strings, URL encode/decode, JSON format, regex test, cron explain, color convert, semver compare, HTTP status codes, slugify, HTML escape, chmod calculator, text diff, number base converter, lorem ipsum, word count, CIDR calculator, case converter, markdown TOC, env parser, IP info, password strength, data size converter, string escape",
+  "version": "1.5.0",
+  "description": "MCP server with 35 developer utilities - UUID, nanoid, hash, HMAC, base64, hex encode, timestamps, JWT decode, random strings, URL encode/decode, JSON format, CSV/JSON convert, regex test, cron explain, color convert, semver compare, HTTP status codes, slugify, HTML escape, chmod calculator, text diff, number base converter, lorem ipsum, word count, byte count, CIDR calculator, case converter, markdown TOC, env parser, IP info, password strength, data size converter, string escape, char info",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -41,7 +41,12 @@
     "ip-address",
     "password-strength",
     "data-size",
-    "string-escape"
+    "string-escape",
+    "nanoid",
+    "csv-json",
+    "hex-encode",
+    "unicode",
+    "byte-count"
   ],
   "author": "Hong Teoh",
   "license": "MIT",
