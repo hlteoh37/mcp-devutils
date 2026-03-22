@@ -4,14 +4,33 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import crypto from "crypto";
 
+// --- Freemium gating ---
+const PRO_KEY = process.env.MCP_DEVUTILS_KEY || "";
+const isProUnlocked = PRO_KEY.length >= 16;
+
+const FREE_TOOLS = new Set([
+  "uuid", "hash", "base64", "timestamp", "jwt_decode",
+  "random_string", "url_encode", "json_format", "regex_test",
+  "cron_explain", "hmac", "color_convert", "http_status",
+  "slug", "escape_html"
+]);
+
+const UPGRADE_MSG = `🔒 This is a PRO tool. Upgrade to unlock 29 additional developer tools!
+
+Get your license key: https://buymeacoffee.com/gl89tu25lp
+
+After purchase, set your key:
+  export MCP_DEVUTILS_KEY="your-key-here"
+
+Then restart your MCP client. All 44 tools will be unlocked.`;
+
 const server = new Server(
-  { name: "mcp-devutils", version: "1.5.0" },
+  { name: "mcp-devutils", version: "2.0.0" },
   { capabilities: { tools: {} } }
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
+  const allTools = [
       {
         name: "uuid",
         description: "Generate a UUID v4",
@@ -464,13 +483,149 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ["text"]
         }
+      },
+      {
+        name: "json_diff",
+        description: "Compare two JSON objects and show the differences — added, removed, and changed keys. Useful for debugging API responses, config changes, and state diffs.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            a: { type: "string", description: "First JSON string" },
+            b: { type: "string", description: "Second JSON string" }
+          },
+          required: ["a", "b"]
+        }
+      },
+      {
+        name: "jwt_create",
+        description: "Create a JWT token signed with HS256. Useful for testing APIs, mocking auth, and generating test tokens.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            payload: { type: "string", description: "JSON string for the JWT payload (e.g. {\"sub\":\"1234\",\"name\":\"Test\"})" },
+            secret: { type: "string", description: "Secret key for HS256 signing (default: 'secret')" },
+            expiresIn: { type: "number", description: "Expiration in seconds from now (default: 3600)" }
+          },
+          required: ["payload"]
+        }
+      },
+      {
+        name: "sql_format",
+        description: "Format a SQL query with proper indentation and keyword capitalization. Supports SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, and JOIN queries.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            sql: { type: "string", description: "SQL query to format" },
+            uppercase: { type: "boolean", description: "Uppercase SQL keywords (default: true)" }
+          },
+          required: ["sql"]
+        }
+      },
+      {
+        name: "json_query",
+        description: "Extract values from a JSON object using dot-notation paths (e.g. 'user.address.city', 'items[0].name', 'data[*].id'). Useful for quickly inspecting nested API responses.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            json: { type: "string", description: "JSON string to query" },
+            path: { type: "string", description: "Dot-notation path (e.g. 'user.name', 'items[0]', 'data[*].id')" }
+          },
+          required: ["json", "path"]
+        }
+      },
+      {
+        name: "epoch_convert",
+        description: "Convert between epoch milliseconds, seconds, and human-readable dates across multiple timezones. Shows UTC, US Eastern, US Pacific, Europe/London, and Asia/Singapore.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            value: { type: "string", description: "Epoch seconds, epoch milliseconds, or ISO date string. Leave empty for current time." },
+            timezone: { type: "string", description: "Additional IANA timezone to show (e.g. 'Asia/Tokyo')" }
+          }
+        }
+      },
+      {
+        name: "aes_encrypt",
+        description: "Encrypt text using AES-256-CBC. Returns hex-encoded IV + ciphertext. Use a strong key (will be hashed to 256 bits internally).",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Plaintext to encrypt" },
+            key: { type: "string", description: "Encryption key (any string — will be SHA-256 hashed to derive 256-bit key)" }
+          },
+          required: ["text", "key"]
+        }
+      },
+      {
+        name: "aes_decrypt",
+        description: "Decrypt AES-256-CBC encrypted text. Expects hex-encoded input from aes_encrypt.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            encrypted: { type: "string", description: "Hex-encoded string (IV + ciphertext) from aes_encrypt" },
+            key: { type: "string", description: "Same key used for encryption" }
+          },
+          required: ["encrypted", "key"]
+        }
+      },
+      {
+        name: "rsa_keygen",
+        description: "Generate an RSA key pair (PEM format). Useful for testing, dev environments, and learning.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            bits: { type: "number", description: "Key size in bits: 1024, 2048, or 4096 (default: 2048)" }
+          }
+        }
+      },
+      {
+        name: "scrypt_hash",
+        description: "Hash a password using Node.js scrypt (RFC 7914). Returns hex-encoded salt + hash for secure password storage.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            password: { type: "string", description: "Password to hash" },
+            salt: { type: "string", description: "Optional salt (hex). If omitted, a random 16-byte salt is generated." }
+          },
+          required: ["password"]
+        }
+      },
+      {
+        name: "regex_replace",
+        description: "Find and replace text using a regular expression. Supports capture groups ($1, $2, etc.) in the replacement string.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Input text" },
+            pattern: { type: "string", description: "Regular expression pattern" },
+            replacement: { type: "string", description: "Replacement string (use $1, $2 for capture groups)" },
+            flags: { type: "string", description: "Regex flags (default: 'g'). Common: 'gi' for global case-insensitive." }
+          },
+          required: ["text", "pattern", "replacement"]
+        }
       }
-    ]
-  };
+  ];
+
+  // Label pro tools when not unlocked
+  const tools = allTools.map(tool => {
+    if (!FREE_TOOLS.has(tool.name) && !isProUnlocked) {
+      return { ...tool, description: `[PRO] ${tool.description}` };
+    }
+    return tool;
+  });
+
+  return { tools };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+
+  // Gate pro tools
+  if (!FREE_TOOLS.has(name) && !isProUnlocked) {
+    return {
+      content: [{ type: "text", text: UPGRADE_MSG }]
+    };
+  }
 
   try {
     switch (name) {
@@ -1447,6 +1602,163 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ascii_bytes: ascii
           }, null, 2) }]
         };
+      }
+
+      case "json_diff": {
+        const objA = JSON.parse(args.a);
+        const objB = JSON.parse(args.b);
+        const diffs = [];
+        const diffObj = (a, b, prefix = "") => {
+          const allKeys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+          for (const key of allKeys) {
+            const path = prefix ? `${prefix}.${key}` : key;
+            if (!(key in (a || {}))) {
+              diffs.push({ path, type: "added", value: b[key] });
+            } else if (!(key in (b || {}))) {
+              diffs.push({ path, type: "removed", value: a[key] });
+            } else if (typeof a[key] === "object" && typeof b[key] === "object" && a[key] !== null && b[key] !== null && !Array.isArray(a[key]) && !Array.isArray(b[key])) {
+              diffObj(a[key], b[key], path);
+            } else if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) {
+              diffs.push({ path, type: "changed", from: a[key], to: b[key] });
+            }
+          }
+        };
+        diffObj(objA, objB);
+        if (diffs.length === 0) {
+          return { content: [{ type: "text", text: "No differences found." }] };
+        }
+        return { content: [{ type: "text", text: JSON.stringify(diffs, null, 2) }] };
+      }
+
+      case "jwt_create": {
+        const payload = JSON.parse(args.payload);
+        const secret = args.secret || "secret";
+        const expiresIn = args.expiresIn || 3600;
+        const header = { alg: "HS256", typ: "JWT" };
+        const now = Math.floor(Date.now() / 1000);
+        payload.iat = payload.iat || now;
+        payload.exp = payload.exp || now + expiresIn;
+        const b64url = (obj) => Buffer.from(JSON.stringify(obj)).toString("base64url");
+        const headerB64 = b64url(header);
+        const payloadB64 = b64url(payload);
+        const signature = crypto.createHmac("sha256", secret).update(`${headerB64}.${payloadB64}`).digest("base64url");
+        const token = `${headerB64}.${payloadB64}.${signature}`;
+        return { content: [{ type: "text", text: `Token: ${token}\n\nHeader: ${JSON.stringify(header, null, 2)}\nPayload: ${JSON.stringify(payload, null, 2)}\n\nSigned with: HS256\nExpires: ${new Date(payload.exp * 1000).toISOString()}` }] };
+      }
+
+      case "sql_format": {
+        const { sql, uppercase = true } = args;
+        const keywords = ["SELECT", "FROM", "WHERE", "AND", "OR", "ORDER BY", "GROUP BY", "HAVING", "LIMIT", "OFFSET", "JOIN", "LEFT JOIN", "RIGHT JOIN", "INNER JOIN", "OUTER JOIN", "FULL JOIN", "CROSS JOIN", "ON", "INSERT INTO", "VALUES", "UPDATE", "SET", "DELETE FROM", "CREATE TABLE", "ALTER TABLE", "DROP TABLE", "AS", "IN", "NOT", "NULL", "IS", "BETWEEN", "LIKE", "EXISTS", "UNION", "UNION ALL", "DISTINCT", "CASE", "WHEN", "THEN", "ELSE", "END"];
+        let formatted = sql.replace(/\s+/g, " ").trim();
+        const newlineBefore = ["SELECT", "FROM", "WHERE", "ORDER BY", "GROUP BY", "HAVING", "LIMIT", "JOIN", "LEFT JOIN", "RIGHT JOIN", "INNER JOIN", "OUTER JOIN", "FULL JOIN", "CROSS JOIN", "INSERT INTO", "VALUES", "UPDATE", "SET", "DELETE FROM", "CREATE TABLE", "UNION", "UNION ALL"];
+        for (const kw of newlineBefore) {
+          const regex = new RegExp(`\\b${kw}\\b`, "gi");
+          const replacement = uppercase ? kw : kw.toLowerCase();
+          formatted = formatted.replace(regex, `\n${replacement}`);
+        }
+        const indentAfter = ["AND", "OR"];
+        for (const kw of indentAfter) {
+          const regex = new RegExp(`\\b${kw}\\b`, "gi");
+          const replacement = uppercase ? kw : kw.toLowerCase();
+          formatted = formatted.replace(regex, `\n  ${replacement}`);
+        }
+        if (uppercase) {
+          for (const kw of ["ON", "AS", "IN", "NOT", "NULL", "IS", "BETWEEN", "LIKE", "EXISTS", "DISTINCT", "CASE", "WHEN", "THEN", "ELSE", "END"]) {
+            const regex = new RegExp(`\\b${kw}\\b`, "gi");
+            formatted = formatted.replace(regex, kw);
+          }
+        }
+        formatted = formatted.trim();
+        return { content: [{ type: "text", text: formatted }] };
+      }
+
+      case "json_query": {
+        const obj = JSON.parse(args.json);
+        const { path } = args;
+        const parts = path.replace(/\[(\d+)\]/g, ".$1").replace(/\[\*\]/g, ".*").split(".");
+        const resolve = (current, parts) => {
+          if (parts.length === 0) return current;
+          const [head, ...rest] = parts;
+          if (head === "*" && Array.isArray(current)) {
+            return current.map(item => resolve(item, rest));
+          }
+          if (current === null || current === undefined) return undefined;
+          const next = Array.isArray(current) ? current[parseInt(head)] : current[head];
+          return resolve(next, rest);
+        };
+        const result = resolve(obj, parts);
+        return { content: [{ type: "text", text: result === undefined ? "undefined (path not found)" : JSON.stringify(result, null, 2) }] };
+      }
+
+      case "epoch_convert": {
+        const { value, timezone } = args || {};
+        const zones = ["UTC", "America/New_York", "America/Los_Angeles", "Europe/London", "Asia/Singapore"];
+        if (timezone && !zones.includes(timezone)) zones.push(timezone);
+        let date;
+        if (!value) {
+          date = new Date();
+        } else if (/^\d+$/.test(value.trim())) {
+          const num = parseInt(value.trim());
+          date = new Date(num > 1e12 ? num : num * 1000);
+        } else {
+          date = new Date(value);
+        }
+        if (isNaN(date.getTime())) throw new Error(`Invalid date/time: ${value}`);
+        const lines = [`Epoch seconds: ${Math.floor(date.getTime() / 1000)}`, `Epoch milliseconds: ${date.getTime()}`, `ISO 8601: ${date.toISOString()}`, ""];
+        for (const tz of zones) {
+          try {
+            lines.push(`${tz}: ${date.toLocaleString("en-US", { timeZone: tz, dateStyle: "full", timeStyle: "long" })}`);
+          } catch { lines.push(`${tz}: (unsupported timezone)`); }
+        }
+        return { content: [{ type: "text", text: lines.join("\n") }] };
+      }
+
+      case "aes_encrypt": {
+        const keyHash = crypto.createHash("sha256").update(args.key).digest();
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv("aes-256-cbc", keyHash, iv);
+        let encrypted = cipher.update(args.text, "utf8", "hex");
+        encrypted += cipher.final("hex");
+        const result = iv.toString("hex") + encrypted;
+        return { content: [{ type: "text", text: `Encrypted (hex): ${result}\n\nIV (first 32 hex chars): ${iv.toString("hex")}\nCiphertext: ${encrypted}\nTotal length: ${result.length} hex chars` }] };
+      }
+
+      case "aes_decrypt": {
+        const keyHash = crypto.createHash("sha256").update(args.key).digest();
+        const encHex = args.encrypted;
+        if (encHex.length < 34) throw new Error("Encrypted string too short — must contain 32-char IV + ciphertext");
+        const iv = Buffer.from(encHex.slice(0, 32), "hex");
+        const ciphertext = encHex.slice(32);
+        const decipher = crypto.createDecipheriv("aes-256-cbc", keyHash, iv);
+        let decrypted = decipher.update(ciphertext, "hex", "utf8");
+        decrypted += decipher.final("utf8");
+        return { content: [{ type: "text", text: decrypted }] };
+      }
+
+      case "rsa_keygen": {
+        const bits = [1024, 2048, 4096].includes(args?.bits) ? args.bits : 2048;
+        const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
+          modulusLength: bits,
+          publicKeyEncoding: { type: "spki", format: "pem" },
+          privateKeyEncoding: { type: "pkcs8", format: "pem" }
+        });
+        return { content: [{ type: "text", text: `=== RSA ${bits}-bit Key Pair ===\n\n--- Public Key ---\n${publicKey}\n--- Private Key ---\n${privateKey}\n⚠️ This is for dev/testing. Never share private keys.` }] };
+      }
+
+      case "scrypt_hash": {
+        const salt = args.salt ? Buffer.from(args.salt, "hex") : crypto.randomBytes(16);
+        const derived = crypto.scryptSync(args.password, salt, 64);
+        const saltHex = salt.toString("hex");
+        const hashHex = derived.toString("hex");
+        return { content: [{ type: "text", text: `Salt (hex): ${saltHex}\nHash (hex): ${hashHex}\nCombined: ${saltHex}:${hashHex}\n\nTo verify, use the same salt with scrypt_hash.` }] };
+      }
+
+      case "regex_replace": {
+        const flags = args.flags || "g";
+        const regex = new RegExp(args.pattern, flags);
+        const result = args.text.replace(regex, args.replacement);
+        const matchCount = (args.text.match(regex) || []).length;
+        return { content: [{ type: "text", text: `Matches found: ${matchCount}\n\n--- Result ---\n${result}` }] };
       }
 
       default:

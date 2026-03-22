@@ -1,7 +1,7 @@
 {
   "name": "mcp-devutils",
-  "version": "1.5.0",
-  "description": "MCP server with 35 developer utilities - UUID, nanoid, hash, HMAC, base64, hex encode, timestamps, JWT decode, random strings, URL encode/decode, JSON format, CSV/JSON convert, regex test, cron explain, color convert, semver compare, HTTP status codes, slugify, HTML escape, chmod calculator, text diff, number base converter, lorem ipsum, word count, byte count, CIDR calculator, case converter, markdown TOC, env parser, IP info, password strength, data size converter, string escape, char info",
+  "version": "2.0.0",
+  "description": "MCP server with 44 developer utilities (15 free + 29 pro). Free: UUID, hash, HMAC, base64, timestamps, JWT decode, random strings, URL encode/decode, JSON format, regex test, cron explain, color convert, HTTP status, slugify, HTML escape. Pro: nanoid, hex encode, JWT create, JSON diff/query, CSV/JSON convert, regex replace, semver compare, chmod calc, text diff, number base, lorem ipsum, word/byte count, CIDR calc, case convert, markdown TOC, env parser, IP info, password strength, data size, string escape, char info, SQL format, epoch convert, AES encrypt/decrypt, RSA keygen, scrypt hash",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -46,7 +46,20 @@
     "csv-json",
     "hex-encode",
     "unicode",
-    "byte-count"
+    "byte-count",
+    "json-diff",
+    "jwt-create",
+    "sql-format",
+    "json-query",
+    "epoch-convert",
+    "timezone",
+    "aes",
+    "encryption",
+    "rsa",
+    "keygen",
+    "scrypt",
+    "password-hash",
+    "regex-replace"
   ],
   "author": "Hong Teoh",
   "license": "MIT",
