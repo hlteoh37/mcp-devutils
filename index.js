@@ -5,7 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import crypto from "crypto";
 
 const server = new Server(
-  { name: "mcp-devutils", version: "1.1.0" },
+  { name: "mcp-devutils", version: "1.2.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -196,6 +196,68 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             version2: { type: "string", description: "Second version to compare against (e.g. '1.3.0')" }
           },
           required: ["version1", "version2"]
+        }
+      },
+      {
+        name: "http_status",
+        description: "Look up HTTP status code meaning, category, and common usage",
+        inputSchema: {
+          type: "object",
+          properties: {
+            code: { type: "number", description: "HTTP status code (e.g. 404, 502)" }
+          },
+          required: ["code"]
+        }
+      },
+      {
+        name: "slug",
+        description: "Generate a URL-safe slug from text",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to slugify" },
+            separator: { type: "string", description: "Word separator (default: '-')" }
+          },
+          required: ["text"]
+        }
+      },
+      {
+        name: "escape_html",
+        description: "Escape or unescape HTML entities",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to escape or unescape" },
+            action: {
+              type: "string",
+              enum: ["escape", "unescape"],
+              description: "Action: escape or unescape (default: escape)"
+            }
+          },
+          required: ["text"]
+        }
+      },
+      {
+        name: "chmod_calc",
+        description: "Convert between numeric and symbolic Unix file permissions (e.g. 755 ↔ rwxr-xr-x)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            permission: { type: "string", description: "Numeric (e.g. '755') or symbolic (e.g. 'rwxr-xr-x') permission" }
+          },
+          required: ["permission"]
+        }
+      },
+      {
+        name: "diff",
+        description: "Compare two text strings and show the differences line by line",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text1: { type: "string", description: "First text (original)" },
+            text2: { type: "string", description: "Second text (modified)" }
+          },
+          required: ["text1", "text2"]
         }
       }
     ]
@@ -576,6 +638,154 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return {
           content: [{ type: "text", text: output.join("\n") }]
         };
+      }
+
+      case "http_status": {
+        const { code } = args;
+        const statuses = {
+          100: ["Continue", "Informational", "The server has received the request headers and the client should proceed to send the request body."],
+          101: ["Switching Protocols", "Informational", "The server is switching protocols as requested by the client (e.g. to WebSocket)."],
+          200: ["OK", "Success", "The request succeeded. Standard response for successful HTTP requests."],
+          201: ["Created", "Success", "The request succeeded and a new resource was created. Typical for POST requests."],
+          202: ["Accepted", "Success", "The request has been accepted for processing, but processing is not complete."],
+          204: ["No Content", "Success", "The request succeeded but there is no content to return. Common for DELETE requests."],
+          301: ["Moved Permanently", "Redirection", "The resource has been permanently moved to a new URL. Clients should update bookmarks."],
+          302: ["Found", "Redirection", "The resource temporarily resides at a different URL. Client should continue using the original URL."],
+          304: ["Not Modified", "Redirection", "The resource has not been modified since the last request. Used for caching."],
+          307: ["Temporary Redirect", "Redirection", "The request should be repeated with the same method at a different URL."],
+          308: ["Permanent Redirect", "Redirection", "The resource has permanently moved. The request method should not change."],
+          400: ["Bad Request", "Client Error", "The server cannot process the request due to malformed syntax or invalid parameters."],
+          401: ["Unauthorized", "Client Error", "Authentication is required. The client must provide valid credentials."],
+          403: ["Forbidden", "Client Error", "The server understood the request but refuses to authorize it. Authentication won't help."],
+          404: ["Not Found", "Client Error", "The requested resource could not be found on the server."],
+          405: ["Method Not Allowed", "Client Error", "The HTTP method is not allowed for the requested resource."],
+          408: ["Request Timeout", "Client Error", "The server timed out waiting for the request from the client."],
+          409: ["Conflict", "Client Error", "The request conflicts with the current state of the resource. Common in concurrent updates."],
+          410: ["Gone", "Client Error", "The resource is no longer available and no forwarding address is known."],
+          413: ["Payload Too Large", "Client Error", "The request body exceeds the server's size limit."],
+          415: ["Unsupported Media Type", "Client Error", "The server does not support the media type of the request body."],
+          422: ["Unprocessable Entity", "Client Error", "The request was well-formed but semantically invalid. Common in validation errors."],
+          429: ["Too Many Requests", "Client Error", "The client has sent too many requests in a given time period (rate limiting)."],
+          500: ["Internal Server Error", "Server Error", "An unexpected condition was encountered on the server."],
+          501: ["Not Implemented", "Server Error", "The server does not support the functionality required to fulfill the request."],
+          502: ["Bad Gateway", "Server Error", "The server received an invalid response from an upstream server."],
+          503: ["Service Unavailable", "Server Error", "The server is temporarily unable to handle the request (overload or maintenance)."],
+          504: ["Gateway Timeout", "Server Error", "The server did not receive a timely response from an upstream server."]
+        };
+        const info = statuses[code];
+        if (!info) {
+          const category = code >= 100 && code < 200 ? "Informational" : code < 300 ? "Success" : code < 400 ? "Redirection" : code < 500 ? "Client Error" : code < 600 ? "Server Error" : "Unknown";
+          return { content: [{ type: "text", text: `${code}: Unknown status code\nCategory: ${category}` }] };
+        }
+        return {
+          content: [{ type: "text", text: `${code} ${info[0]}\nCategory: ${info[1]}\nDescription: ${info[2]}` }]
+        };
+      }
+
+      case "slug": {
+        const { text, separator = "-" } = args;
+        const slug = text.toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .trim()
+          .replace(/[\s-]+/g, separator);
+        return { content: [{ type: "text", text: slug }] };
+      }
+
+      case "escape_html": {
+        const { text, action = "escape" } = args;
+        let result;
+        if (action === "escape") {
+          result = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        } else {
+          result = text
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&gt;/g, ">")
+            .replace(/&lt;/g, "<")
+            .replace(/&amp;/g, "&");
+        }
+        return { content: [{ type: "text", text: result }] };
+      }
+
+      case "chmod_calc": {
+        const { permission } = args;
+        const numericMatch = permission.match(/^[0-7]{3,4}$/);
+        const symbolicMatch = permission.match(/^([r-][w-][xsS-])([r-][w-][xsS-])([r-][w-][xtT-])$/);
+
+        if (numericMatch) {
+          const digits = permission.length === 4 ? permission : "0" + permission;
+          const special = parseInt(digits[0]);
+          const owner = parseInt(digits[1]);
+          const group = parseInt(digits[2]);
+          const other = parseInt(digits[3]);
+
+          function toSymbolic(val, pos, specialBit) {
+            let r = (val & 4) ? "r" : "-";
+            let w = (val & 2) ? "w" : "-";
+            let x = (val & 1) ? "x" : "-";
+            if (specialBit) {
+              if (pos === "owner" && (special & 4)) x = (val & 1) ? "s" : "S";
+              if (pos === "group" && (special & 2)) x = (val & 1) ? "s" : "S";
+              if (pos === "other" && (special & 1)) x = (val & 1) ? "t" : "T";
+            }
+            return r + w + x;
+          }
+
+          const sym = toSymbolic(owner, "owner", true) + toSymbolic(group, "group", true) + toSymbolic(other, "other", true);
+          const desc = [];
+          desc.push(`Numeric: ${permission}`);
+          desc.push(`Symbolic: ${sym}`);
+          desc.push(`Owner: ${["---","--x","-w-","-wx","r--","r-x","rw-","rwx"][owner]} (${owner})`);
+          desc.push(`Group: ${["---","--x","-w-","-wx","r--","r-x","rw-","rwx"][group]} (${group})`);
+          desc.push(`Other: ${["---","--x","-w-","-wx","r--","r-x","rw-","rwx"][other]} (${other})`);
+          return { content: [{ type: "text", text: desc.join("\n") }] };
+        } else if (symbolicMatch) {
+          function fromSymbolic(s) {
+            let val = 0;
+            if (s[0] === "r") val += 4;
+            if (s[1] === "w") val += 2;
+            if (s[2] === "x" || s[2] === "s" || s[2] === "t") val += 1;
+            return val;
+          }
+          const o = fromSymbolic(symbolicMatch[1]);
+          const g = fromSymbolic(symbolicMatch[2]);
+          const t = fromSymbolic(symbolicMatch[3]);
+          const numeric = `${o}${g}${t}`;
+          return { content: [{ type: "text", text: `Symbolic: ${permission}\nNumeric: ${numeric}\nOwner: ${o}, Group: ${g}, Other: ${t}` }] };
+        } else {
+          throw new Error("Invalid permission. Use numeric (e.g. '755') or symbolic (e.g. 'rwxr-xr-x')");
+        }
+      }
+
+      case "diff": {
+        const { text1, text2 } = args;
+        const lines1 = text1.split("\n");
+        const lines2 = text2.split("\n");
+        const output = [];
+        const maxLen = Math.max(lines1.length, lines2.length);
+
+        // Simple line-by-line diff
+        let added = 0, removed = 0, unchanged = 0;
+        for (let i = 0; i < maxLen; i++) {
+          const l1 = i < lines1.length ? lines1[i] : undefined;
+          const l2 = i < lines2.length ? lines2[i] : undefined;
+          if (l1 === l2) {
+            output.push(`  ${l1}`);
+            unchanged++;
+          } else {
+            if (l1 !== undefined) { output.push(`- ${l1}`); removed++; }
+            if (l2 !== undefined) { output.push(`+ ${l2}`); added++; }
+          }
+        }
+
+        const summary = `\n--- Summary: ${added} added, ${removed} removed, ${unchanged} unchanged`;
+        return { content: [{ type: "text", text: output.join("\n") + summary }] };
       }
 
       default:

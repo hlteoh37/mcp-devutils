@@ -19,6 +19,11 @@ An MCP (Model Context Protocol) server with developer utilities. Use it directly
 | `hmac` | Generate HMAC signatures (SHA-256, SHA-512, etc.) |
 | `color_convert` | Convert colors between hex, RGB, and HSL |
 | `semver_compare` | Compare two semantic versions |
+| `http_status` | Look up HTTP status code meaning and usage |
+| `slug` | Generate URL-safe slugs from text |
+| `escape_html` | Escape or unescape HTML entities |
+| `chmod_calc` | Convert between numeric and symbolic Unix permissions |
+| `diff` | Compare two texts and show differences line by line |
 
 ## Installation
 
@@ -150,9 +155,40 @@ Compare two semantic versions:
 - `version2`: Second version (required), e.g. `2.0.0`
 - Returns comparison result and parsed components
 
+### http_status
+Look up HTTP status codes:
+- `code`: HTTP status code (required), e.g. `404`, `502`
+- Returns status name, category, and description
+
+### slug
+Generate URL-safe slugs:
+- `text`: Text to slugify (required)
+- `separator`: Word separator (default: `-`)
+
+### escape_html
+Escape or unescape HTML entities:
+- `text`: Input text (required)
+- `action`: `escape` or `unescape` (default: escape)
+
+### chmod_calc
+Convert Unix file permissions:
+- `permission`: Numeric (e.g. `755`) or symbolic (e.g. `rwxr-xr-x`) (required)
+- Returns both formats plus owner/group/other breakdown
+
+### diff
+Compare two texts:
+- `text1`: Original text (required)
+- `text2`: Modified text (required)
+- Returns line-by-line diff with added/removed/unchanged summary
+
 ## See Also
 
 - [mcp-apitools](https://www.npmjs.com/package/mcp-apitools) — 8 API & web dev utilities: HTTP status codes, MIME types, JWT creation, mock data, CORS headers, cookie parsing
+- [mcp-texttools](https://www.npmjs.com/package/mcp-texttools) — 10 text transformation tools: case convert, slugify, word count, lorem ipsum, regex replace, markdown strip
+- [mcp-mathtools](https://www.npmjs.com/package/mcp-mathtools) — 12 math & statistics tools: arithmetic, statistics, unit conversion, financial calculations, matrices
+- [mcp-datetime](https://www.npmjs.com/package/mcp-datetime) — 10 date & time tools: timezone conversion, date math, cron explanation, business days
+- [mcp-quick-calc](https://www.npmjs.com/package/mcp-quick-calc) — 5 calculator tools: currency conversion, percentages, compound interest, unit conversion, loan payments
+- **[mcp-all-tools](https://www.npmjs.com/package/mcp-all-tools)** — All 54+ tools in a single MCP server
 
 ## License
 

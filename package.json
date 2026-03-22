@@ -1,7 +1,7 @@
 {
   "name": "mcp-devutils",
-  "version": "1.1.0",
-  "description": "MCP server with 13 developer utilities - UUID, hash, HMAC, base64, timestamps, JWT decode, random strings, URL encode/decode, JSON format, regex test, cron explain, color convert, semver compare",
+  "version": "1.2.0",
+  "description": "MCP server with 19 developer utilities - UUID, hash, HMAC, base64, timestamps, JWT decode, random strings, URL encode/decode, JSON format, regex test, cron explain, color convert, semver compare, HTTP status codes, slugify, HTML escape, chmod calculator, text diff",
   "type": "module",
   "main": "index.js",
   "bin": {
@@ -10,7 +10,28 @@
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": ["mcp", "model-context-protocol", "developer-tools", "utilities", "uuid", "hash", "hmac", "base64", "jwt", "claude", "cursor", "cron", "color-convert", "semver"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "developer-tools",
+    "utilities",
+    "uuid",
+    "hash",
+    "hmac",
+    "base64",
+    "jwt",
+    "claude",
+    "cursor",
+    "cron",
+    "color-convert",
+    "semver",
+    "http-status",
+    "slugify",
+    "html-escape",
+    "chmod",
+    "diff",
+    "permissions"
+  ],
   "author": "Hong Teoh",
   "license": "MIT",
   "funding": {
