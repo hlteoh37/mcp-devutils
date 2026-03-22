@@ -1,8 +1,12 @@
 # mcp-devutils
 
-MCP server with **44 developer utilities** for Claude Desktop, Cursor, and any MCP-compatible AI assistant.
+[![npm version](https://img.shields.io/npm/v/mcp-devutils)](https://www.npmjs.com/package/mcp-devutils)
+[![npm downloads](https://img.shields.io/npm/dw/mcp-devutils)](https://www.npmjs.com/package/mcp-devutils)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**15 tools free** — unlock all 44 with a Pro license key.
+MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
+
+**15 tools free forever** — [unlock all 44 for $5](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05) (one-time, instant delivery).
 
 ## Install
 
