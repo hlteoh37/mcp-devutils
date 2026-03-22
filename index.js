@@ -5,7 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import crypto from "crypto";
 
 const server = new Server(
-  { name: "mcp-devutils", version: "1.3.0" },
+  { name: "mcp-devutils", version: "1.4.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -334,6 +334,76 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             max_depth: { type: "number", description: "Maximum heading depth to include (default: 3)" }
           },
           required: ["markdown"]
+        }
+      },
+      {
+        name: "env_parse",
+        description: "Parse and validate .env file contents — shows keys, detects issues like missing values, duplicate keys, or invalid lines",
+        inputSchema: {
+          type: "object",
+          properties: {
+            content: { type: "string", description: ".env file content to parse and validate" }
+          },
+          required: ["content"]
+        }
+      },
+      {
+        name: "ip_info",
+        description: "Parse and analyze an IP address — shows type (IPv4/IPv6), class, whether private/public/loopback/link-local",
+        inputSchema: {
+          type: "object",
+          properties: {
+            ip: { type: "string", description: "IP address to analyze (e.g. '192.168.1.1' or '::1')" }
+          },
+          required: ["ip"]
+        }
+      },
+      {
+        name: "password_strength",
+        description: "Analyze password strength — calculates entropy, checks length, character diversity, and common patterns",
+        inputSchema: {
+          type: "object",
+          properties: {
+            password: { type: "string", description: "Password to analyze" }
+          },
+          required: ["password"]
+        }
+      },
+      {
+        name: "data_size",
+        description: "Convert between data size units (bytes, KB, MB, GB, TB, PB) with both decimal (SI) and binary (IEC) representations",
+        inputSchema: {
+          type: "object",
+          properties: {
+            value: { type: "number", description: "Numeric value to convert" },
+            unit: {
+              type: "string",
+              enum: ["B", "KB", "MB", "GB", "TB", "PB", "KiB", "MiB", "GiB", "TiB", "PiB"],
+              description: "Source unit (default: B for bytes)"
+            }
+          },
+          required: ["value"]
+        }
+      },
+      {
+        name: "string_escape",
+        description: "Escape or unescape strings for various contexts: JSON, CSV, regex, SQL, or shell",
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to escape or unescape" },
+            format: {
+              type: "string",
+              enum: ["json", "csv", "regex", "sql", "shell"],
+              description: "Target format to escape for"
+            },
+            action: {
+              type: "string",
+              enum: ["escape", "unescape"],
+              description: "Action: escape or unescape (default: escape)"
+            }
+          },
+          required: ["text", "format"]
         }
       }
     ]
@@ -1030,6 +1100,210 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         if (toc.length === 0) return { content: [{ type: "text", text: "No headings found." }] };
         return { content: [{ type: "text", text: toc.join("\n") }] };
+      }
+
+      case "env_parse": {
+        const { content } = args;
+        const lines = content.split("\n");
+        const keys = [];
+        const issues = [];
+        const seen = new Set();
+        lines.forEach((line, i) => {
+          const num = i + 1;
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) return;
+          const eqIdx = trimmed.indexOf("=");
+          if (eqIdx === -1) {
+            issues.push(`Line ${num}: Invalid format (no '=' found): ${trimmed}`);
+            return;
+          }
+          const key = trimmed.substring(0, eqIdx).trim();
+          const val = trimmed.substring(eqIdx + 1).trim();
+          if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+            issues.push(`Line ${num}: Invalid key name '${key}'`);
+          }
+          if (seen.has(key)) {
+            issues.push(`Line ${num}: Duplicate key '${key}'`);
+          }
+          seen.add(key);
+          if (!val) {
+            issues.push(`Line ${num}: Empty value for '${key}'`);
+          }
+          keys.push({ key, value: val.length > 50 ? val.substring(0, 50) + "..." : val, line: num });
+        });
+        const output = [`Parsed ${keys.length} key(s) from ${lines.length} line(s)`];
+        if (keys.length > 0) {
+          output.push("\nKeys:");
+          keys.forEach(k => output.push(`  ${k.key} = ${k.value} (line ${k.line})`));
+        }
+        if (issues.length > 0) {
+          output.push(`\n⚠ ${issues.length} issue(s):`);
+          issues.forEach(i => output.push(`  ${i}`));
+        } else {
+          output.push("\n✓ No issues found");
+        }
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "ip_info": {
+        const { ip } = args;
+        const trimmed = ip.trim();
+        const output = [];
+        if (trimmed.includes(":")) {
+          output.push(`IP: ${trimmed}`);
+          output.push(`Version: IPv6`);
+          if (trimmed === "::1") output.push("Type: Loopback");
+          else if (trimmed.startsWith("fe80:")) output.push("Type: Link-local");
+          else if (trimmed.startsWith("fc") || trimmed.startsWith("fd")) output.push("Type: Unique local (private)");
+          else if (trimmed.startsWith("ff")) output.push("Type: Multicast");
+          else if (trimmed === "::") output.push("Type: Unspecified");
+          else output.push("Type: Global unicast (public)");
+        } else {
+          const parts = trimmed.split(".");
+          if (parts.length !== 4 || parts.some(p => isNaN(p) || +p < 0 || +p > 255)) {
+            throw new Error(`Invalid IPv4 address: ${trimmed}`);
+          }
+          const octets = parts.map(Number);
+          output.push(`IP: ${trimmed}`);
+          output.push(`Version: IPv4`);
+          output.push(`Binary: ${octets.map(o => o.toString(2).padStart(8, "0")).join(".")}`);
+          if (octets[0] === 127) output.push("Type: Loopback");
+          else if (octets[0] === 10) output.push("Type: Private (10.0.0.0/8, Class A)");
+          else if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) output.push("Type: Private (172.16.0.0/12, Class B)");
+          else if (octets[0] === 192 && octets[1] === 168) output.push("Type: Private (192.168.0.0/16, Class C)");
+          else if (octets[0] === 169 && octets[1] === 254) output.push("Type: Link-local (APIPA)");
+          else if (octets[0] >= 224 && octets[0] <= 239) output.push("Type: Multicast");
+          else if (octets[0] >= 240) output.push("Type: Reserved");
+          else output.push("Type: Public");
+          if (octets[0] < 128) output.push("Class: A");
+          else if (octets[0] < 192) output.push("Class: B");
+          else if (octets[0] < 224) output.push("Class: C");
+          else if (octets[0] < 240) output.push("Class: D (Multicast)");
+          else output.push("Class: E (Reserved)");
+        }
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "password_strength": {
+        const { password } = args;
+        const len = password.length;
+        let charsetSize = 0;
+        if (/[a-z]/.test(password)) charsetSize += 26;
+        if (/[A-Z]/.test(password)) charsetSize += 26;
+        if (/[0-9]/.test(password)) charsetSize += 10;
+        if (/[^a-zA-Z0-9]/.test(password)) charsetSize += 32;
+        const entropy = Math.round(len * Math.log2(charsetSize || 1) * 100) / 100;
+        const issues = [];
+        if (len < 8) issues.push("Too short (< 8 characters)");
+        if (!/[A-Z]/.test(password)) issues.push("No uppercase letters");
+        if (!/[a-z]/.test(password)) issues.push("No lowercase letters");
+        if (!/[0-9]/.test(password)) issues.push("No digits");
+        if (!/[^a-zA-Z0-9]/.test(password)) issues.push("No special characters");
+        if (/(.)\1{2,}/.test(password)) issues.push("Contains repeated characters (3+)");
+        if (/^(123|abc|qwerty|password|admin|letmein)/i.test(password)) issues.push("Starts with common pattern");
+        let strength;
+        if (entropy < 28) strength = "Very Weak";
+        else if (entropy < 36) strength = "Weak";
+        else if (entropy < 60) strength = "Moderate";
+        else if (entropy < 80) strength = "Strong";
+        else strength = "Very Strong";
+        const output = [
+          `Password length: ${len}`,
+          `Charset size: ${charsetSize}`,
+          `Entropy: ${entropy} bits`,
+          `Strength: ${strength}`,
+        ];
+        if (issues.length > 0) {
+          output.push(`\nIssues (${issues.length}):`);
+          issues.forEach(i => output.push(`  - ${i}`));
+        } else {
+          output.push("\n✓ No issues detected");
+        }
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "data_size": {
+        const { value, unit = "B" } = args;
+        const units = {
+          B: 1, KB: 1e3, MB: 1e6, GB: 1e9, TB: 1e12, PB: 1e15,
+          KiB: 1024, MiB: 1048576, GiB: 1073741824, TiB: 1099511627776, PiB: 1125899906842624
+        };
+        if (!units[unit]) throw new Error(`Unknown unit: ${unit}. Use: ${Object.keys(units).join(", ")}`);
+        const bytes = value * units[unit];
+        const fmt = (n) => n < 0.01 ? n.toExponential(2) : (n % 1 === 0 ? n.toString() : n.toFixed(2));
+        const output = [
+          `Input: ${value} ${unit} = ${fmt(bytes)} bytes`,
+          "",
+          "Decimal (SI):",
+          `  ${fmt(bytes)} B`,
+          `  ${fmt(bytes / 1e3)} KB`,
+          `  ${fmt(bytes / 1e6)} MB`,
+          `  ${fmt(bytes / 1e9)} GB`,
+          `  ${fmt(bytes / 1e12)} TB`,
+          `  ${fmt(bytes / 1e15)} PB`,
+          "",
+          "Binary (IEC):",
+          `  ${fmt(bytes)} B`,
+          `  ${fmt(bytes / 1024)} KiB`,
+          `  ${fmt(bytes / 1048576)} MiB`,
+          `  ${fmt(bytes / 1073741824)} GiB`,
+          `  ${fmt(bytes / 1099511627776)} TiB`,
+          `  ${fmt(bytes / 1125899906842624)} PiB`,
+        ];
+        return { content: [{ type: "text", text: output.join("\n") }] };
+      }
+
+      case "string_escape": {
+        const { text, format, action = "escape" } = args;
+        let result;
+        if (action === "escape") {
+          switch (format) {
+            case "json":
+              result = JSON.stringify(text).slice(1, -1);
+              break;
+            case "csv":
+              result = text.includes(",") || text.includes('"') || text.includes("\n")
+                ? '"' + text.replace(/"/g, '""') + '"'
+                : text;
+              break;
+            case "regex":
+              result = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              break;
+            case "sql":
+              result = text.replace(/'/g, "''");
+              break;
+            case "shell":
+              result = "'" + text.replace(/'/g, "'\\''") + "'";
+              break;
+            default:
+              throw new Error(`Unknown format: ${format}`);
+          }
+        } else {
+          switch (format) {
+            case "json":
+              result = JSON.parse(`"${text}"`);
+              break;
+            case "csv":
+              result = text.startsWith('"') && text.endsWith('"')
+                ? text.slice(1, -1).replace(/""/g, '"')
+                : text;
+              break;
+            case "regex":
+              result = text.replace(/\\([.*+?^${}()|[\]\\])/g, "$1");
+              break;
+            case "sql":
+              result = text.replace(/''/g, "'");
+              break;
+            case "shell":
+              result = text.startsWith("'") && text.endsWith("'")
+                ? text.slice(1, -1).replace(/'\\''/g, "'")
+                : text;
+              break;
+            default:
+              throw new Error(`Unknown format: ${format}`);
+          }
+        }
+        return { content: [{ type: "text", text: result }] };
       }
 
       default:
