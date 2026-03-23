@@ -4,15 +4,26 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import crypto from "crypto";
 
-// --- Freemium gating ---
+// --- Freemium gating (Ed25519 signature verification) ---
 const PRO_KEY = process.env.MCP_DEVUTILS_KEY || "";
-const VALID_KEY_HASHES = new Set([
-  "562d19b82677fb6c890735f703110c97499cd152748fd3d6a9be222e54eec652",
-  "b11b51398df70985c1509f8c16b2884db1598eaebe65b111c33d6f1f12e4ca5e",
-  "41f508b3b8123f0d37a48db86bc0d1fec66435bb690028b6daa9c6041eb860db"
-]);
-const keyHash = crypto.createHash("sha256").update(PRO_KEY).digest("hex");
-const isProUnlocked = VALID_KEY_HASHES.has(keyHash);
+const LICENSE_PUB_KEY = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEActYbi5xXGsEho83iwLy919ciKrEB7uYCm5Bmh5VUFCI=
+-----END PUBLIC KEY-----`;
+
+function verifyLicense(key) {
+  if (!key) return false;
+  const parts = key.split(".");
+  if (parts.length !== 3 || parts[0] !== "DU") return false;
+  const [, payload, sigB64] = parts;
+  try {
+    const sig = Buffer.from(sigB64.replace(/_/g, "/").replace(/-/g, "+"), "base64");
+    const pubKey = crypto.createPublicKey(LICENSE_PUB_KEY);
+    return crypto.verify(null, Buffer.from(payload), pubKey, sig);
+  } catch {
+    return false;
+  }
+}
+const isProUnlocked = verifyLicense(PRO_KEY);
 
 const FREE_TOOLS = new Set([
   "uuid", "hash", "base64", "timestamp", "jwt_decode",
@@ -21,19 +32,18 @@ const FREE_TOOLS = new Set([
   "slug", "escape_html"
 ]);
 
-const UPGRADE_MSG = `🔒 PRO tool — unlock all 44 developer utilities for $5 (one-time):
+const UPGRADE_MSG = `This is a PRO tool. Unlock all 44 developer utilities:
 
-👉 https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05
+Get a license: https://buymeacoffee.com/gl89tu25lp
 
-After purchase you'll see your license key on the confirmation page.
-Add it to your MCP config:
+Add your license key to your MCP config:
 
-  "env": { "MCP_DEVUTILS_KEY": "YOUR-KEY-HERE" }
+  "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }
 
 Restart your MCP client and all 44 tools are unlocked instantly.`;
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.2.1" },
+  { name: "mcp-devutils", version: "2.3.0" },
   { capabilities: { tools: {} } }
 );
 

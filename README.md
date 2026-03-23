@@ -6,7 +6,7 @@
 
 MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
 
-**15 tools free forever** — [unlock all 44 for $5](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05) (one-time, instant delivery).
+**15 tools free forever** — [unlock all 44 for $5](https://buymeacoffee.com/gl89tu25lp) (one-time, instant delivery).
 
 ## Install
 
@@ -23,7 +23,7 @@ MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf,
 
 ## Unlock Pro (29 extra tools) — $5 one-time
 
-1. **[Buy Pro License ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — instant key delivery
+1. **[Buy Pro License ($5)](https://buymeacoffee.com/gl89tu25lp)** — instant key delivery
 2. Copy your license key from the confirmation page
 3. Add it to your MCP config:
 
@@ -34,7 +34,7 @@ MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf,
       "command": "npx",
       "args": ["-y", "mcp-devutils"],
       "env": {
-        "MCP_DEVUTILS_KEY": "your-key-here"
+        "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx"
       }
     }
   }
@@ -101,7 +101,7 @@ Only requires `@modelcontextprotocol/sdk`. All tools use Node.js built-ins.
 
 ## Support
 
-- **[Get Pro ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — unlock all 44 tools
+- **[Get Pro ($5)](https://buymeacoffee.com/gl89tu25lp)** — unlock all 44 tools
 - [Buy me a coffee](https://buymeacoffee.com/gl89tu25lp)
 - [Tip via Stripe ($3)](https://buy.stripe.com/dRm8wP8R295Z9VyeN59Zm00)
 
