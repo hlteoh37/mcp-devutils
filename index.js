@@ -76,9 +76,11 @@ function checkTrial(toolName) {
   return { allowed: true, remaining: TRIAL_LIMIT - used - 1 };
 }
 
+const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
+
 function trialBanner(toolName, remaining) {
-  if (remaining > 0) return `\n\n---\n⚡ Trial: ${remaining} free use${remaining === 1 ? "" : "s"} of ${toolName} remaining this session. Unlock unlimited access to all 29 pro tools: https://buymeacoffee.com/gl89tu25lp`;
-  return `\n\n---\n⚡ Last free trial use of ${toolName}! Get a license to keep using it: https://buymeacoffee.com/gl89tu25lp`;
+  if (remaining > 0) return `\n\n---\n⚡ Trial: ${remaining} free use${remaining === 1 ? "" : "s"} of ${toolName} remaining this session. Unlock all 29 pro tools ($5 one-time): ${PRO_URL}`;
+  return `\n\n---\n⚡ Last free trial use of ${toolName}! Unlock all 29 pro tools ($5 one-time): ${PRO_URL}`;
 }
 
 const UPGRADE_MSG = (toolName) => {
@@ -91,18 +93,16 @@ const UPGRADE_MSG = (toolName) => {
   return `Trial expired for ${toolName}. You've used all ${TRIAL_LIMIT} free tries this session.${stillAvailable}
 
 Unlock all 29 pro tools permanently ($5 one-time):
-  https://buymeacoffee.com/gl89tu25lp
+  ${PRO_URL}
 
-After purchase, add your license key to your MCP config:
+After purchase, your license key is emailed within 1 hour. Add it to your MCP config:
   "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }
 
-Restart your MCP client and all 44 tools are unlocked instantly.
-
-Also available as a VS Code extension: https://hlteoh37.github.io/devutils-vscode/`;
+Restart your MCP client and all 44 tools are unlocked instantly.`;
 };
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.6.0" },
+  { name: "mcp-devutils", version: "2.7.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -1867,10 +1867,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
         const validationStatus = remoteValid === true ? " (verified)" : remoteValid === false ? " (revoked)" : remoteValid === null && localValid ? " (local only)" : "";
-        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.6.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
-        text += `\n\nAlso available as a VS Code extension: https://hlteoh37.github.io/devutils-vscode/`;
+        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.7.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
         if (!isProUnlocked) {
-          text += `\n\nGet a license to unlock all tools permanently:\n  https://buymeacoffee.com/gl89tu25lp\n\nAdd to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
+          text += `\n\nUnlock all 29 pro tools ($5 one-time): ${PRO_URL}\n\nAfter purchase, add your key to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
         }
         return { content: [{ type: "text", text }] };
       }
