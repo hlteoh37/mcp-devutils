@@ -63,11 +63,13 @@ Unlock all 29 pro tools permanently ($5 one-time):
 After purchase, add your license key to your MCP config:
   "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }
 
-Restart your MCP client and all 44 tools are unlocked instantly.`;
+Restart your MCP client and all 44 tools are unlocked instantly.
+
+Also available as a VS Code extension: https://hlteoh37.github.io/devutils-vscode/`;
 };
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.5.0" },
+  { name: "mcp-devutils", version: "2.5.1" },
   { capabilities: { tools: {} } }
 );
 
@@ -1831,7 +1833,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           proTools.push(`  ${t}: ${rem > 0 ? rem + " trials left" : "trial expired"}`);
         }
         const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
-        let text = `DevUtils Status\n\nLicense: ${status}\nVersion: 2.5.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        let text = `DevUtils Status\n\nLicense: ${status}\nVersion: 2.5.1\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        text += `\n\nAlso available as a VS Code extension: https://hlteoh37.github.io/devutils-vscode/`;
         if (!isProUnlocked) {
           text += `\n\nGet a license to unlock all tools permanently:\n  https://buymeacoffee.com/gl89tu25lp\n\nAdd to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
         }

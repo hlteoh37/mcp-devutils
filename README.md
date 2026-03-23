@@ -149,6 +149,10 @@ Add to `.vscode/mcp.json` in your project:
 | `scrypt_hash` | Hash passwords with scrypt (RFC 7914) |
 | `regex_replace` | Find & replace with regex + capture groups |
 
+## Also available as a VS Code extension
+
+Prefer tools in your editor sidebar? **[DevUtils for VS Code](https://hlteoh37.github.io/devutils-vscode/)** — same 44 tools, native VS Code UI. Works on selected text, activity bar panel, keyboard shortcuts.
+
 ## Zero dependencies
 
 Only requires `@modelcontextprotocol/sdk`. All tools use Node.js built-ins.
