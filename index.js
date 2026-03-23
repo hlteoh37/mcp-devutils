@@ -48,18 +48,26 @@ function trialBanner(toolName, remaining) {
   return `\n\n---\n⚡ Last free trial use of ${toolName}! Get a license to keep using it: https://buymeacoffee.com/gl89tu25lp`;
 }
 
-const UPGRADE_MSG = (toolName) => `Trial expired for ${toolName}. You've used all ${TRIAL_LIMIT} free tries this session.
+const UPGRADE_MSG = (toolName) => {
+  // Show other pro tools that still have trial uses
+  const allProTools = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","text_diff","number_base","lorem_ipsum","word_count","cidr_calc","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_batch","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
+  const available = allProTools.filter(t => t !== toolName && (trialUses.get(t) || 0) < TRIAL_LIMIT);
+  const stillAvailable = available.length > 0
+    ? `\n\nYou can still try these pro tools: ${available.slice(0, 5).join(", ")}${available.length > 5 ? ` (+${available.length - 5} more)` : ""}`
+    : "\n\nAll trial uses exhausted for this session.";
+  return `Trial expired for ${toolName}. You've used all ${TRIAL_LIMIT} free tries this session.${stillAvailable}
 
-Unlock all 29 pro tools permanently:
+Unlock all 29 pro tools permanently ($5 one-time):
   https://buymeacoffee.com/gl89tu25lp
 
 After purchase, add your license key to your MCP config:
   "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }
 
 Restart your MCP client and all 44 tools are unlocked instantly.`;
+};
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.4.0" },
+  { name: "mcp-devutils", version: "2.5.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -1823,7 +1831,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           proTools.push(`  ${t}: ${rem > 0 ? rem + " trials left" : "trial expired"}`);
         }
         const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
-        let text = `DevUtils Status\n\nLicense: ${status}\nVersion: 2.4.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        let text = `DevUtils Status\n\nLicense: ${status}\nVersion: 2.5.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
         if (!isProUnlocked) {
           text += `\n\nGet a license to unlock all tools permanently:\n  https://buymeacoffee.com/gl89tu25lp\n\nAdd to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
         }

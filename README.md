@@ -8,13 +8,64 @@ MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf,
 
 **15 tools free forever** + **try all 29 pro tools 3 times each** — [unlock permanently for $5](https://buymeacoffee.com/gl89tu25lp) (one-time).
 
-**New in v2.4**: Try any pro tool 3 times per session before buying. Run `devutils_status` to see your trial balance.
+> "Generate a UUID" · "Hash this password with SHA-256" · "Decode this JWT" · "What does 0 15 10 * * ? mean in cron?" · "Convert this JSON to CSV" · "Diff these two configs"
+>
+> Just ask your AI assistant — mcp-devutils handles it instantly, no browser tabs needed.
 
 ## Install
+
+### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
   "mcpServers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"]
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to `.cursor/mcp.json` in your project or `~/.cursor/mcp.json` globally:
+
+```json
+{
+  "mcpServers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"]
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"]
+    }
+  }
+}
+```
+
+### VS Code (Copilot / Continue / Cline)
+
+Add to `.vscode/mcp.json` in your project:
+
+```json
+{
+  "servers": {
     "devutils": {
       "command": "npx",
       "args": ["-y", "mcp-devutils"]
