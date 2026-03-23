@@ -4,11 +4,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import crypto from "crypto";
 
-// --- Freemium gating (Ed25519 signature verification) ---
+// --- Freemium gating (Ed25519 signature + remote hash verification) ---
 const PRO_KEY = process.env.MCP_DEVUTILS_KEY || "";
 const LICENSE_PUB_KEY = `-----BEGIN PUBLIC KEY-----
 MCowBQYDK2VwAyEActYbi5xXGsEho83iwLy919ciKrEB7uYCm5Bmh5VUFCI=
 -----END PUBLIC KEY-----`;
+const HASH_URL = "https://hlteoh37.github.io/mcp-devutils/v.json";
 
 function verifyLicense(key) {
   if (!key) return false;
@@ -23,7 +24,39 @@ function verifyLicense(key) {
     return false;
   }
 }
-const isProUnlocked = verifyLicense(PRO_KEY);
+
+// Remote hash validation — fetches allowed key hashes from GitHub Pages
+let remoteValid = null; // null = not checked, true/false = result
+async function verifyRemote(key) {
+  if (!key) return false;
+  try {
+    const keyHash = crypto.createHash("sha256").update(key).digest("hex");
+    const resp = await fetch(HASH_URL, { signal: AbortSignal.timeout(3000) });
+    if (!resp.ok) return null; // network issue, fall back to local
+    const data = await resp.json();
+    return Array.isArray(data.h) && data.h.includes(keyHash);
+  } catch {
+    return null; // network issue, don't block on connectivity
+  }
+}
+
+// Check both: local Ed25519 signature AND remote hash list
+const localValid = verifyLicense(PRO_KEY);
+let isProUnlocked = localValid;
+
+// Async remote check — runs on startup, tightens validation once resolved
+if (PRO_KEY) {
+  verifyRemote(PRO_KEY).then(result => {
+    remoteValid = result;
+    if (result === false && localValid) {
+      // Key passes local signature but isn't in remote hash list — revoked or forged
+      isProUnlocked = false;
+    } else if (result === true) {
+      isProUnlocked = true;
+    }
+    // null means network issue — keep local result
+  });
+}
 
 const FREE_TOOLS = new Set([
   "uuid", "hash", "base64", "timestamp", "jwt_decode",
@@ -69,7 +102,7 @@ Also available as a VS Code extension: https://hlteoh37.github.io/devutils-vscod
 };
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.5.1" },
+  { name: "mcp-devutils", version: "2.6.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -1833,7 +1866,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           proTools.push(`  ${t}: ${rem > 0 ? rem + " trials left" : "trial expired"}`);
         }
         const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
-        let text = `DevUtils Status\n\nLicense: ${status}\nVersion: 2.5.1\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        const validationStatus = remoteValid === true ? " (verified)" : remoteValid === false ? " (revoked)" : remoteValid === null && localValid ? " (local only)" : "";
+        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.6.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
         text += `\n\nAlso available as a VS Code extension: https://hlteoh37.github.io/devutils-vscode/`;
         if (!isProUnlocked) {
           text += `\n\nGet a license to unlock all tools permanently:\n  https://buymeacoffee.com/gl89tu25lp\n\nAdd to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
