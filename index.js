@@ -29,21 +29,37 @@ const FREE_TOOLS = new Set([
   "uuid", "hash", "base64", "timestamp", "jwt_decode",
   "random_string", "url_encode", "json_format", "regex_test",
   "cron_explain", "hmac", "color_convert", "http_status",
-  "slug", "escape_html"
+  "slug", "escape_html", "devutils_status"
 ]);
 
-const UPGRADE_MSG = `This is a PRO tool. Unlock all 44 developer utilities:
+// --- Trial system: let users try each pro tool 3 times per session ---
+const TRIAL_LIMIT = 3;
+const trialUses = new Map(); // tool_name -> count
 
-Get a license: https://buymeacoffee.com/gl89tu25lp
+function checkTrial(toolName) {
+  const used = trialUses.get(toolName) || 0;
+  if (used >= TRIAL_LIMIT) return { allowed: false, remaining: 0 };
+  trialUses.set(toolName, used + 1);
+  return { allowed: true, remaining: TRIAL_LIMIT - used - 1 };
+}
 
-Add your license key to your MCP config:
+function trialBanner(toolName, remaining) {
+  if (remaining > 0) return `\n\n---\n⚡ Trial: ${remaining} free use${remaining === 1 ? "" : "s"} of ${toolName} remaining this session. Unlock unlimited access to all 29 pro tools: https://buymeacoffee.com/gl89tu25lp`;
+  return `\n\n---\n⚡ Last free trial use of ${toolName}! Get a license to keep using it: https://buymeacoffee.com/gl89tu25lp`;
+}
 
+const UPGRADE_MSG = (toolName) => `Trial expired for ${toolName}. You've used all ${TRIAL_LIMIT} free tries this session.
+
+Unlock all 29 pro tools permanently:
+  https://buymeacoffee.com/gl89tu25lp
+
+After purchase, add your license key to your MCP config:
   "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }
 
 Restart your MCP client and all 44 tools are unlocked instantly.`;
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.3.0" },
+  { name: "mcp-devutils", version: "2.4.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -621,13 +637,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ["text", "pattern", "replacement"]
         }
+      },
+      {
+        name: "devutils_status",
+        description: "Show license status, available tools, and remaining trial uses",
+        inputSchema: {
+          type: "object",
+          properties: {}
+        }
       }
   ];
 
-  // Label pro tools when not unlocked
+  // Label pro tools when not unlocked — show trial info
   const tools = allTools.map(tool => {
+    if (tool.name === "devutils_status") return tool; // always free
     if (!FREE_TOOLS.has(tool.name) && !isProUnlocked) {
-      return { ...tool, description: `[PRO] ${tool.description}` };
+      const used = trialUses.get(tool.name) || 0;
+      const remaining = TRIAL_LIMIT - used;
+      const label = remaining > 0 ? `[PRO — ${remaining} trial uses left]` : `[PRO — trial expired]`;
+      return { ...tool, description: `${label} ${tool.description}` };
     }
     return tool;
   });
@@ -638,13 +666,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
-  // Gate pro tools
-  if (!FREE_TOOLS.has(name) && !isProUnlocked) {
-    return {
-      content: [{ type: "text", text: UPGRADE_MSG }]
-    };
+  // Gate pro tools — trial allows 3 free uses per session
+  const isPro = !FREE_TOOLS.has(name);
+  let trialInfo = null;
+  if (isPro && !isProUnlocked) {
+    trialInfo = checkTrial(name);
+    if (!trialInfo.allowed) {
+      return {
+        content: [{ type: "text", text: UPGRADE_MSG(name) }]
+      };
+    }
   }
 
+  const result = await (async () => {
   try {
     switch (name) {
       case "uuid": {
@@ -1779,6 +1813,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: `Matches found: ${matchCount}\n\n--- Result ---\n${result}` }] };
       }
 
+      case "devutils_status": {
+        const freeList = [...FREE_TOOLS].filter(t => t !== "devutils_status").join(", ");
+        const proTools = [];
+        const allToolNames = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","text_diff","number_base","lorem_ipsum","word_count","cidr_calc","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_batch","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
+        for (const t of allToolNames) {
+          const used = trialUses.get(t) || 0;
+          const rem = TRIAL_LIMIT - used;
+          proTools.push(`  ${t}: ${rem > 0 ? rem + " trials left" : "trial expired"}`);
+        }
+        const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
+        let text = `DevUtils Status\n\nLicense: ${status}\nVersion: 2.4.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        if (!isProUnlocked) {
+          text += `\n\nGet a license to unlock all tools permanently:\n  https://buymeacoffee.com/gl89tu25lp\n\nAdd to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
+        }
+        return { content: [{ type: "text", text }] };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -1788,6 +1839,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       isError: true
     };
   }
+  })();
+
+  // Append trial banner to pro tool results for unlicensed users
+  if (trialInfo && result && !result.isError && result.content && result.content[0]) {
+    result.content[0].text += trialBanner(name, trialInfo.remaining);
+  }
+  return result;
 });
 
 const transport = new StdioServerTransport();

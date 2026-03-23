@@ -6,7 +6,9 @@
 
 MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
 
-**15 tools free forever** — [unlock all 44 for $5](https://buymeacoffee.com/gl89tu25lp) (one-time, instant delivery).
+**15 tools free forever** + **try all 29 pro tools 3 times each** — [unlock permanently for $5](https://buymeacoffee.com/gl89tu25lp) (one-time).
+
+**New in v2.4**: Try any pro tool 3 times per session before buying. Run `devutils_status` to see your trial balance.
 
 ## Install
 
@@ -60,6 +62,7 @@ MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf,
 | `http_status` | Look up HTTP status code meanings |
 | `slug` | Generate URL-safe slugs |
 | `escape_html` | Escape/unescape HTML entities |
+| `devutils_status` | Show license status and remaining trial uses |
 
 ## Pro Tools (29)
 
