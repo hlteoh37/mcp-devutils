@@ -160,7 +160,6 @@ Only requires `@modelcontextprotocol/sdk`. All tools use Node.js built-ins.
 ## Support
 
 - **[Get Pro ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — unlock all 44 tools
-- [Buy me a coffee](https://buymeacoffee.com/gl89tu25lp)
 - [Tip via Stripe ($3)](https://buy.stripe.com/dRm8wP8R295Z9VyeN59Zm00)
 
 ## License

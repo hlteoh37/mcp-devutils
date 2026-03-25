@@ -1,6 +1,6 @@
 {
   "name": "mcp-devutils",
-  "version": "2.7.1",
+  "version": "2.7.2",
   "description": "MCP server with 44 developer utilities (15 free + 29 pro). Free: UUID, hash, HMAC, base64, timestamps, JWT decode, random strings, URL encode/decode, JSON format, regex test, cron explain, color convert, HTTP status, slugify, HTML escape. Pro: nanoid, hex encode, JWT create, JSON diff/query, CSV/JSON convert, regex replace, semver compare, chmod calc, text diff, number base, lorem ipsum, word/byte count, CIDR calc, case convert, markdown TOC, env parser, IP info, password strength, data size, string escape, char info, SQL format, epoch convert, AES encrypt/decrypt, RSA keygen, scrypt hash",
   "type": "module",
   "main": "index.js",
@@ -70,7 +70,7 @@
     },
     {
       "type": "individual",
-      "url": "https://buymeacoffee.com/gl89tu25lp"
+      "url": "https://buy.stripe.com/dRm8wP8R295Z9VyeN59Zm00"
     }
   ],
   "dependencies": {
