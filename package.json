@@ -63,10 +63,16 @@
   ],
   "author": "Hong Teoh",
   "license": "MIT",
-  "funding": {
-    "type": "buymeacoffee",
-    "url": "https://buymeacoffee.com/gl89tu25lp"
-  },
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05"
+    },
+    {
+      "type": "individual",
+      "url": "https://buymeacoffee.com/gl89tu25lp"
+    }
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
   },
