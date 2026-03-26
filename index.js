@@ -101,7 +101,7 @@ function checkTrial(toolName) {
 }
 
 const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
-const VERSION = "2.9.4";
+const VERSION = "2.9.5";
 const ALL_PRO_TOOLS = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","diff","number_base","lorem_ipsum","word_count","cidr","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_convert","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
 
 function trialBanner(toolName, remaining) {
@@ -1701,12 +1701,44 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "csv_json": {
         const { input, direction, delimiter = "," } = args;
+        // Parse a CSV line respecting quoted fields (handles delimiters and newlines inside quotes)
+        function parseCsvLine(line, delim) {
+          const fields = [];
+          let current = "";
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (inQuotes) {
+              if (ch === '"') {
+                if (i + 1 < line.length && line[i + 1] === '"') {
+                  current += '"';
+                  i++; // skip escaped quote
+                } else {
+                  inQuotes = false;
+                }
+              } else {
+                current += ch;
+              }
+            } else {
+              if (ch === '"') {
+                inQuotes = true;
+              } else if (ch === delim) {
+                fields.push(current.trim());
+                current = "";
+              } else {
+                current += ch;
+              }
+            }
+          }
+          fields.push(current.trim());
+          return fields;
+        }
         if (direction === "csv_to_json") {
           const lines = input.split("\n").filter(l => l.trim());
           if (lines.length < 1) throw new Error("CSV must have at least a header row");
-          const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^"|"$/g, ""));
+          const headers = parseCsvLine(lines[0], delimiter);
           const rows = lines.slice(1).map(line => {
-            const vals = line.split(delimiter).map(v => v.trim().replace(/^"|"$/g, ""));
+            const vals = parseCsvLine(line, delimiter);
             const obj = {};
             headers.forEach((h, i) => { obj[h] = vals[i] || ""; });
             return obj;
