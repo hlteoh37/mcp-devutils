@@ -6,7 +6,7 @@
 
 MCP server with **45 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
 
-**15 tools free forever** + **try all 29 pro tools 3 times each** — [unlock permanently for $5](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05) (one-time).
+**16 tools free forever** + **try all 29 pro tools 3 times each** — [unlock permanently for $5](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05) (one-time).
 
 > "Generate a UUID" · "Hash this password with SHA-256" · "Decode this JWT" · "What does 0 15 10 * * ? mean in cron?" · "Convert this JSON to CSV" · "Diff these two configs"
 >
@@ -154,9 +154,9 @@ Add to `.vscode/mcp.json` in your project:
 
 Prefer tools in your editor sidebar? **[DevUtils for VS Code](https://hlteoh37.github.io/devutils-vscode/)** — same 45 tools, native VS Code UI. Works on selected text, activity bar panel, keyboard shortcuts.
 
-## Zero dependencies
+## Minimal dependencies
 
-Only requires `@modelcontextprotocol/sdk`. All tools use Node.js built-ins.
+Only requires `@modelcontextprotocol/sdk` and `js-yaml`. All other tools use Node.js built-ins.
 
 ## Support
 

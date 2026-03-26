@@ -126,7 +126,7 @@ Restart your MCP client and all 45 tools are unlocked instantly.`;
 };
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.8.0" },
+  { name: "mcp-devutils", version: "2.9.1" },
   { capabilities: { tools: {} } }
 );
 
@@ -1934,7 +1934,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
         const validationStatus = remoteValid === true ? " (verified)" : remoteValid === false ? " (revoked)" : remoteValid === null && localValid ? " (local only)" : "";
-        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.9.0\n\nFree tools (${[...FREE_TOOLS].filter(t => t !== "devutils_status").length}): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.9.1\n\nFree tools (${[...FREE_TOOLS].filter(t => t !== "devutils_status").length}): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
         if (!isProUnlocked) {
           text += `\n\nUnlock all 29 pro tools ($5 one-time): ${PRO_URL}\n\nAfter purchase, add your key to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
         }
