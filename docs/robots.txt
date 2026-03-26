@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hlteoh37.github.io/mcp-devutils/sitemap.xml
