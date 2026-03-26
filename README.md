@@ -161,7 +161,7 @@ Only requires `@modelcontextprotocol/sdk` and `js-yaml`. All other tools use Nod
 ## Support
 
 - **[Get Pro ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — unlock all 45 tools
-- [Tip via Stripe ($3)](https://buy.stripe.com/dRm8wP8R295Z9VyeN59Zm00)
+- [Tip via Stripe ($3)](https://buymeacoffee.com/gl89tu25lp)
 
 ## License
 
