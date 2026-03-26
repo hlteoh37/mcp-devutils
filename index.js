@@ -66,7 +66,7 @@ const FREE_TOOLS = new Set([
   "uuid", "hash", "base64", "timestamp", "jwt_decode",
   "random_string", "url_encode", "json_format", "regex_test",
   "cron_explain", "hmac", "color_convert", "http_status",
-  "slug", "escape_html", "devutils_status", "yaml_json"
+  "slug", "escape_html", "yaml_json", "devutils_status"
 ]);
 
 // --- Trial system: persistent trial tracking (survives restarts) ---
@@ -101,7 +101,7 @@ function checkTrial(toolName) {
 }
 
 const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
-const VERSION = "2.9.5";
+const VERSION = "2.9.6";
 const ALL_PRO_TOOLS = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","diff","number_base","lorem_ipsum","word_count","cidr","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_convert","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
 
 function trialBanner(toolName, remaining) {
@@ -1290,23 +1290,56 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const { text1, text2 } = args;
         const lines1 = text1.split("\n");
         const lines2 = text2.split("\n");
-        const output = [];
-        const maxLen = Math.max(lines1.length, lines2.length);
-
-        // Simple line-by-line diff
-        let added = 0, removed = 0, unchanged = 0;
-        for (let i = 0; i < maxLen; i++) {
-          const l1 = i < lines1.length ? lines1[i] : undefined;
-          const l2 = i < lines2.length ? lines2[i] : undefined;
-          if (l1 === l2) {
-            output.push(`  ${l1}`);
-            unchanged++;
-          } else {
-            if (l1 !== undefined) { output.push(`- ${l1}`); removed++; }
-            if (l2 !== undefined) { output.push(`+ ${l2}`); added++; }
+        // Myers-style LCS diff for accurate insertions/deletions
+        const n = lines1.length, m = lines2.length;
+        const max = n + m;
+        const v = new Int32Array(2 * max + 1);
+        const trace = [];
+        v.fill(-1);
+        v[max + 1] = 0;
+        outer: for (let d = 0; d <= max; d++) {
+          trace.push(v.slice());
+          for (let k = -d; k <= d; k += 2) {
+            let x;
+            if (k === -d || (k !== d && v[max + k - 1] < v[max + k + 1])) {
+              x = v[max + k + 1];
+            } else {
+              x = v[max + k - 1] + 1;
+            }
+            let y = x - k;
+            while (x < n && y < m && lines1[x] === lines2[y]) { x++; y++; }
+            v[max + k] = x;
+            if (x >= n && y >= m) break outer;
           }
         }
-
+        // Backtrack to build edit script
+        const edits = [];
+        let x = n, y = m;
+        for (let d = trace.length - 1; d >= 0; d--) {
+          const vd = trace[d];
+          const k = x - y;
+          let prevK;
+          if (k === -d || (k !== d && vd[max + k - 1] < vd[max + k + 1])) {
+            prevK = k + 1;
+          } else {
+            prevK = k - 1;
+          }
+          const prevX = vd[max + prevK];
+          const prevY = prevX - prevK;
+          while (x > prevX && y > prevY) { x--; y--; edits.push({ type: "eq", line: lines1[x] }); }
+          if (d > 0) {
+            if (x === prevX) { y--; edits.push({ type: "add", line: lines2[y] }); }
+            else { x--; edits.push({ type: "del", line: lines1[x] }); }
+          }
+        }
+        edits.reverse();
+        const output = [];
+        let added = 0, removed = 0, unchanged = 0;
+        for (const e of edits) {
+          if (e.type === "eq") { output.push(`  ${e.line}`); unchanged++; }
+          else if (e.type === "del") { output.push(`- ${e.line}`); removed++; }
+          else { output.push(`+ ${e.line}`); added++; }
+        }
         const summary = `\n--- Summary: ${added} added, ${removed} removed, ${unchanged} unchanged`;
         return { content: [{ type: "text", text: output.join("\n") + summary }] };
       }

@@ -82,8 +82,8 @@ Add to `.vscode/mcp.json` in your project:
 
 ## Unlock Pro (29 extra tools) — $5 one-time
 
-1. **[Buy Pro License ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — instant key delivery
-2. Copy your license key from the confirmation page
+1. **[Buy Pro License ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)**
+2. Your license key is emailed within 1 hour
 3. Add it to your MCP config:
 
 ```json
