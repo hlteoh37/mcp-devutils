@@ -54,9 +54,17 @@
     .hero h1 { font-size: 48px; margin-bottom: 16px; }
     .hero h1 span { color: #58a6ff; }
     .hero p { font-size: 20px; color: #8b949e; margin-bottom: 32px; }
-    .install-box { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; max-width: 520px; margin: 0 auto 24px; text-align: left; }
+    .install-box { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; max-width: 600px; margin: 0 auto 24px; text-align: left; }
     .install-box code { font-family: 'SF Mono', monospace; font-size: 14px; color: #7ee787; }
     .install-box .label { font-size: 13px; color: #484f58; margin-bottom: 8px; }
+    .install-tabs { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 1px solid #30363d; }
+    .install-tab { background: none; border: none; color: #8b949e; padding: 8px 14px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; font-family: inherit; }
+    .install-tab:hover { color: #e6edf3; }
+    .install-tab.active { color: #58a6ff; border-bottom-color: #58a6ff; }
+    .install-content { display: none; }
+    .install-content.active { display: block; }
+    .install-box pre { margin: 0; white-space: pre; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+    .install-box .file-hint { font-size: 11px; color: #484f58; margin-bottom: 6px; }
     .cta { display: inline-block; background: #238636; color: #fff; padding: 14px 32px; border-radius: 8px; font-size: 18px; font-weight: 600; text-decoration: none; margin: 8px; transition: background 0.2s; }
     .cta:hover { background: #2ea043; }
     .cta-secondary { background: transparent; border: 1px solid #30363d; color: #e6edf3; }
@@ -99,8 +107,62 @@
   <p style="color:#7ee787;font-size:16px;margin-bottom:24px">Try every pro tool 3 times free — no signup, no credit card.</p>
 
   <div class="install-box">
-    <div class="label">Install in one line:</div>
-    <code>npx -y mcp-devutils</code>
+    <div class="label">Set up in your editor:</div>
+    <div class="install-tabs">
+      <button class="install-tab active" onclick="showTab('claude')">Claude Desktop</button>
+      <button class="install-tab" onclick="showTab('cursor')">Cursor</button>
+      <button class="install-tab" onclick="showTab('vscode')">VS Code</button>
+      <button class="install-tab" onclick="showTab('windsurf')">Windsurf</button>
+      <button class="install-tab" onclick="showTab('claudecode')">Claude Code</button>
+    </div>
+    <div id="tab-claude" class="install-content active">
+      <div class="file-hint">Add to claude_desktop_config.json:</div>
+      <pre><code>{
+  "mcpServers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"]
+    }
+  }
+}</code></pre>
+    </div>
+    <div id="tab-cursor" class="install-content">
+      <div class="file-hint">Add to .cursor/mcp.json:</div>
+      <pre><code>{
+  "mcpServers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"]
+    }
+  }
+}</code></pre>
+    </div>
+    <div id="tab-vscode" class="install-content">
+      <div class="file-hint">Add to .vscode/mcp.json:</div>
+      <pre><code>{
+  "servers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"]
+    }
+  }
+}</code></pre>
+    </div>
+    <div id="tab-windsurf" class="install-content">
+      <div class="file-hint">Add to ~/.codeium/windsurf/mcp_config.json:</div>
+      <pre><code>{
+  "mcpServers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"]
+    }
+  }
+}</code></pre>
+    </div>
+    <div id="tab-claudecode" class="install-content">
+      <div class="file-hint">Run in terminal:</div>
+      <pre><code>claude mcp add devutils -- npx -y mcp-devutils</code></pre>
+    </div>
   </div>
 
   <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px;flex-wrap:wrap">
@@ -225,5 +287,13 @@
   <div class="pf-brand">Built by <a href="https://hlteoh37.github.io/profiterole-blog/">Profiterole</a></div>
 </div>
 
+<script>
+function showTab(id) {
+  document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.install-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
 </body>
 </html>
