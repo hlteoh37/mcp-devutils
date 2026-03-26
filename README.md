@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dw/mcp-devutils)](https://www.npmjs.com/package/mcp-devutils)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-MCP server with **44 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
+MCP server with **45 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
 
 **15 tools free forever** + **try all 29 pro tools 3 times each** — [unlock permanently for $5](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05) (one-time).
 
@@ -94,7 +94,7 @@ Add to `.vscode/mcp.json` in your project:
 }
 ```
 
-## Free Tools (15)
+## Free Tools (16)
 
 | Tool | Description |
 |------|-------------|
@@ -106,6 +106,7 @@ Add to `.vscode/mcp.json` in your project:
 | `random_string` | Generate random strings/passwords |
 | `url_encode` | URL encode/decode |
 | `json_format` | Pretty-print or minify JSON |
+| `yaml_json` | Convert between YAML and JSON (auto-detects format) |
 | `regex_test` | Test regex patterns with match details |
 | `cron_explain` | Explain cron expressions + next run times |
 | `hmac` | Generate HMAC signatures |
@@ -151,7 +152,7 @@ Add to `.vscode/mcp.json` in your project:
 
 ## Also available as a VS Code extension
 
-Prefer tools in your editor sidebar? **[DevUtils for VS Code](https://hlteoh37.github.io/devutils-vscode/)** — same 44 tools, native VS Code UI. Works on selected text, activity bar panel, keyboard shortcuts.
+Prefer tools in your editor sidebar? **[DevUtils for VS Code](https://hlteoh37.github.io/devutils-vscode/)** — same 45 tools, native VS Code UI. Works on selected text, activity bar panel, keyboard shortcuts.
 
 ## Zero dependencies
 
@@ -159,7 +160,7 @@ Only requires `@modelcontextprotocol/sdk`. All tools use Node.js built-ins.
 
 ## Support
 
-- **[Get Pro ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — unlock all 44 tools
+- **[Get Pro ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — unlock all 45 tools
 - [Tip via Stripe ($3)](https://buy.stripe.com/dRm8wP8R295Z9VyeN59Zm00)
 
 ## License

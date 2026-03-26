@@ -6,6 +6,7 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import yaml from "js-yaml";
 
 // --- Freemium gating (Ed25519 signature + remote hash verification) ---
 const PRO_KEY = process.env.MCP_DEVUTILS_KEY || "";
@@ -65,7 +66,7 @@ const FREE_TOOLS = new Set([
   "uuid", "hash", "base64", "timestamp", "jwt_decode",
   "random_string", "url_encode", "json_format", "regex_test",
   "cron_explain", "hmac", "color_convert", "http_status",
-  "slug", "escape_html", "devutils_status"
+  "slug", "escape_html", "devutils_status", "yaml_json"
 ]);
 
 // --- Trial system: persistent trial tracking (survives restarts) ---
@@ -121,7 +122,7 @@ Unlock all 29 pro tools permanently ($5 one-time):
 After purchase, your license key is emailed within 1 hour. Add it to your MCP config:
   "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }
 
-Restart your MCP client and all 44 tools are unlocked instantly.`;
+Restart your MCP client and all 45 tools are unlocked instantly.`;
 };
 
 const server = new Server(
@@ -246,6 +247,23 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             indent: { type: "number", description: "Indent spaces for format (default: 2)" }
           },
           required: ["json"]
+        }
+      },
+      {
+        name: "yaml_json",
+        description: "Convert between YAML and JSON. Auto-detects input format or use direction param",
+        inputSchema: {
+          type: "object",
+          properties: {
+            input: { type: "string", description: "YAML or JSON string to convert" },
+            direction: {
+              type: "string",
+              enum: ["yaml2json", "json2yaml", "auto"],
+              description: "Conversion direction (default: auto-detect)"
+            },
+            indent: { type: "number", description: "Indent spaces (default: 2)" }
+          },
+          required: ["input"]
         }
       },
       {
@@ -879,6 +897,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           result = JSON.stringify(parsed);
         } else {
           result = JSON.stringify(parsed, null, Math.min(Math.max(0, indent), 8));
+        }
+        return {
+          content: [{ type: "text", text: result }]
+        };
+      }
+
+      case "yaml_json": {
+        const { input, direction = "auto", indent = 2 } = args;
+        const ind = Math.min(Math.max(0, indent), 8);
+        let dir = direction;
+        if (dir === "auto") {
+          // Try JSON parse first; if it works, convert to YAML
+          try {
+            JSON.parse(input);
+            dir = "json2yaml";
+          } catch {
+            dir = "yaml2json";
+          }
+        }
+        let result;
+        if (dir === "json2yaml") {
+          const parsed = JSON.parse(input);
+          result = yaml.dump(parsed, { indent: ind, lineWidth: -1, noRefs: true });
+        } else {
+          const parsed = yaml.load(input, { schema: yaml.DEFAULT_SCHEMA });
+          result = JSON.stringify(parsed, null, ind);
         }
         return {
           content: [{ type: "text", text: result }]
@@ -1890,7 +1934,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
         const validationStatus = remoteValid === true ? " (verified)" : remoteValid === false ? " (revoked)" : remoteValid === null && localValid ? " (local only)" : "";
-        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.8.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.9.0\n\nFree tools (${[...FREE_TOOLS].filter(t => t !== "devutils_status").length}): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
         if (!isProUnlocked) {
           text += `\n\nUnlock all 29 pro tools ($5 one-time): ${PRO_URL}\n\nAfter purchase, add your key to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
         }
