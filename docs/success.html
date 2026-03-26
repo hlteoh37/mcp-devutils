@@ -38,10 +38,9 @@
 
     <div class="steps">
       <h3>Once you have your key:</h3>
-      <ol>
-        <li>Open your MCP config file (<code>claude_desktop_config.json</code> or similar)</li>
-        <li>Add your key to the devutils config:</li>
-      </ol>
+      <p style="color:#8b949e;margin-bottom:16px">Add the <code>env</code> block with your key to your MCP config, then restart:</p>
+
+      <p style="font-size:14px;font-weight:600;margin-bottom:4px">Claude Desktop / Cursor / Windsurf</p>
       <pre>{
   "mcpServers": {
     "devutils": {
@@ -53,9 +52,24 @@
     }
   }
 }</pre>
-      <ol start="3">
-        <li>Restart your AI assistant — all 45 tools are now active!</li>
-      </ol>
+
+      <p style="font-size:14px;font-weight:600;margin-bottom:4px">Claude Code</p>
+      <pre>claude mcp add devutils -e MCP_DEVUTILS_KEY=DU.your-key-here -- npx -y mcp-devutils</pre>
+
+      <p style="font-size:14px;font-weight:600;margin-bottom:4px">VS Code (.vscode/mcp.json)</p>
+      <pre>{
+  "servers": {
+    "devutils": {
+      "command": "npx",
+      "args": ["-y", "mcp-devutils"],
+      "env": {
+        "MCP_DEVUTILS_KEY": "DU.your-key-here"
+      }
+    }
+  }
+}</pre>
+
+      <p style="color:#7ee787;margin-top:16px;font-weight:600">Restart your AI assistant — all 45 tools are now active!</p>
     </div>
 
     <p style="color: #8b949e; font-size: 14px;">Lost your key? Reply to your Stripe receipt email and we'll resend it.</p>

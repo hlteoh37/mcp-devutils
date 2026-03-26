@@ -59,6 +59,12 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 }
 ```
 
+### Claude Code
+
+```bash
+claude mcp add devutils -- npx -y mcp-devutils
+```
+
 ### VS Code (Copilot / Continue / Cline)
 
 Add to `.vscode/mcp.json` in your project:
@@ -161,7 +167,7 @@ Only requires `@modelcontextprotocol/sdk` and `js-yaml`. All other tools use Nod
 ## Support
 
 - **[Get Pro ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)** — unlock all 45 tools
-- [Tip via Stripe ($3)](https://buymeacoffee.com/gl89tu25lp)
+- [Buy Me a Coffee](https://buymeacoffee.com/gl89tu25lp)
 
 ## License
 
