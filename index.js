@@ -3,6 +3,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 // --- Freemium gating (Ed25519 signature + remote hash verification) ---
 const PRO_KEY = process.env.MCP_DEVUTILS_KEY || "";
@@ -65,22 +68,42 @@ const FREE_TOOLS = new Set([
   "slug", "escape_html", "devutils_status"
 ]);
 
-// --- Trial system: let users try each pro tool 3 times per session ---
+// --- Trial system: persistent trial tracking (survives restarts) ---
 const TRIAL_LIMIT = 3;
-const trialUses = new Map(); // tool_name -> count
+const TRIAL_DIR = path.join(os.homedir(), ".mcp-devutils");
+const TRIAL_FILE = path.join(TRIAL_DIR, "trials.json");
+
+function loadTrials() {
+  try {
+    return JSON.parse(fs.readFileSync(TRIAL_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveTrials(data) {
+  try {
+    fs.mkdirSync(TRIAL_DIR, { recursive: true });
+    fs.writeFileSync(TRIAL_FILE, JSON.stringify(data));
+  } catch { /* silent — don't break tool on fs errors */ }
+}
+
+const trialData = loadTrials();
+const trialUses = new Map(Object.entries(trialData));
 
 function checkTrial(toolName) {
   const used = trialUses.get(toolName) || 0;
   if (used >= TRIAL_LIMIT) return { allowed: false, remaining: 0 };
   trialUses.set(toolName, used + 1);
+  saveTrials(Object.fromEntries(trialUses));
   return { allowed: true, remaining: TRIAL_LIMIT - used - 1 };
 }
 
 const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
 
 function trialBanner(toolName, remaining) {
-  if (remaining > 0) return `\n\n---\n⚡ Trial: ${remaining} free use${remaining === 1 ? "" : "s"} of ${toolName} remaining this session. Unlock all 29 pro tools ($5 one-time): ${PRO_URL}`;
-  return `\n\n---\n⚡ Last free trial use of ${toolName}! Unlock all 29 pro tools ($5 one-time): ${PRO_URL}`;
+  if (remaining > 0) return `\n\n---\n⚡ Trial: ${remaining} free use${remaining === 1 ? "" : "s"} of ${toolName} remaining. Unlock all 29 pro tools permanently ($5 one-time): ${PRO_URL}`;
+  return `\n\n---\n⚡ Last free trial use of ${toolName}! Unlock all 29 pro tools permanently ($5 one-time): ${PRO_URL}`;
 }
 
 const UPGRADE_MSG = (toolName) => {
@@ -89,8 +112,8 @@ const UPGRADE_MSG = (toolName) => {
   const available = allProTools.filter(t => t !== toolName && (trialUses.get(t) || 0) < TRIAL_LIMIT);
   const stillAvailable = available.length > 0
     ? `\n\nYou can still try these pro tools: ${available.slice(0, 5).join(", ")}${available.length > 5 ? ` (+${available.length - 5} more)` : ""}`
-    : "\n\nAll trial uses exhausted for this session.";
-  return `Trial expired for ${toolName}. You've used all ${TRIAL_LIMIT} free tries this session.${stillAvailable}
+    : "\n\nAll trial uses exhausted for this install.";
+  return `Trial expired for ${toolName}. You've used all ${TRIAL_LIMIT} free tries this install.${stillAvailable}
 
 Unlock all 29 pro tools permanently ($5 one-time):
   ${PRO_URL}
@@ -102,7 +125,7 @@ Restart your MCP client and all 44 tools are unlocked instantly.`;
 };
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.7.0" },
+  { name: "mcp-devutils", version: "2.8.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -1867,7 +1890,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         const status = isProUnlocked ? "✅ Pro — all tools unlocked" : "🆓 Free plan (trial mode active)";
         const validationStatus = remoteValid === true ? " (verified)" : remoteValid === false ? " (revoked)" : remoteValid === null && localValid ? " (local only)" : "";
-        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.7.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
+        let text = `DevUtils Status\n\nLicense: ${status}${validationStatus}\nVersion: 2.8.0\n\nFree tools (15): ${freeList}\n\nPro tools (29 — ${isProUnlocked ? "all unlocked" : TRIAL_LIMIT + " free trials each"}):\n${proTools.join("\n")}`;
         if (!isProUnlocked) {
           text += `\n\nUnlock all 29 pro tools ($5 one-time): ${PRO_URL}\n\nAfter purchase, add your key to MCP config: "env": { "MCP_DEVUTILS_KEY": "DU.xxxxx.xxxxx" }`;
         }
