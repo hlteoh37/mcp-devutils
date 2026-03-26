@@ -109,11 +109,11 @@
   <div class="install-box">
     <div class="label">Set up in your editor:</div>
     <div class="install-tabs">
-      <button class="install-tab active" onclick="showTab('claude')">Claude Desktop</button>
-      <button class="install-tab" onclick="showTab('cursor')">Cursor</button>
-      <button class="install-tab" onclick="showTab('vscode')">VS Code</button>
-      <button class="install-tab" onclick="showTab('windsurf')">Windsurf</button>
-      <button class="install-tab" onclick="showTab('claudecode')">Claude Code</button>
+      <button class="install-tab active" onclick="showTab('claude',this)">Claude Desktop</button>
+      <button class="install-tab" onclick="showTab('cursor',this)">Cursor</button>
+      <button class="install-tab" onclick="showTab('vscode',this)">VS Code</button>
+      <button class="install-tab" onclick="showTab('windsurf',this)">Windsurf</button>
+      <button class="install-tab" onclick="showTab('claudecode',this)">Claude Code</button>
     </div>
     <div id="tab-claude" class="install-content active">
       <div class="file-hint">Add to claude_desktop_config.json:</div>
@@ -274,7 +274,7 @@
 </div>
 
 <footer>
-  <p>Built by <a href="https://github.com/hlteoh37">hlteoh37</a> &middot; <a href="https://www.npmjs.com/package/mcp-devutils">npm</a> &middot; <a href="https://github.com/hlteoh37/mcp-devutils">GitHub</a> &middot; <a href="https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05">Get Pro ($5)</a></p>
+  <p>Built by <a href="https://github.com/hlteoh37">hlteoh37</a> &middot; <a href="https://www.npmjs.com/package/mcp-devutils">npm</a> &middot; <a href="https://github.com/hlteoh37/mcp-devutils">GitHub</a> &middot; <a href="https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05">Get Pro ($5)</a> &middot; <a href="https://buymeacoffee.com/gl89tu25lp">Buy Me a Coffee</a></p>
 </footer>
 <div class="profiterole-footer">
   <div class="pf-links">
@@ -288,11 +288,11 @@
 </div>
 
 <script>
-function showTab(id) {
+function showTab(id, el) {
   document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.install-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-' + id).classList.add('active');
-  event.target.classList.add('active');
+  el.classList.add('active');
 }
 </script>
 </body>
