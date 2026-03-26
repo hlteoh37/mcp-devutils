@@ -101,7 +101,7 @@ function checkTrial(toolName) {
 }
 
 const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
-const VERSION = "2.9.6";
+const VERSION = "2.9.7";
 const ALL_PRO_TOOLS = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","diff","number_base","lorem_ipsum","word_count","cidr","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_convert","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
 
 function trialBanner(toolName, remaining) {
@@ -1836,22 +1836,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const objA = JSON.parse(args.a);
         const objB = JSON.parse(args.b);
         const diffs = [];
-        const diffObj = (a, b, prefix = "") => {
-          const allKeys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+        const deepDiff = (a, b, prefix = "") => {
+          if (a === b) return;
+          if (a === null || b === null || typeof a !== "object" || typeof b !== "object") {
+            if (JSON.stringify(a) !== JSON.stringify(b)) {
+              diffs.push({ path: prefix || "(root)", type: "changed", from: a, to: b });
+            }
+            return;
+          }
+          if (Array.isArray(a) && Array.isArray(b)) {
+            const maxLen = Math.max(a.length, b.length);
+            for (let i = 0; i < maxLen; i++) {
+              const p = prefix ? `${prefix}[${i}]` : `[${i}]`;
+              if (i >= a.length) diffs.push({ path: p, type: "added", value: b[i] });
+              else if (i >= b.length) diffs.push({ path: p, type: "removed", value: a[i] });
+              else deepDiff(a[i], b[i], p);
+            }
+            return;
+          }
+          if (Array.isArray(a) !== Array.isArray(b)) {
+            diffs.push({ path: prefix || "(root)", type: "changed", from: a, to: b });
+            return;
+          }
+          const allKeys = new Set([...Object.keys(a), ...Object.keys(b)]);
           for (const key of allKeys) {
             const path = prefix ? `${prefix}.${key}` : key;
-            if (!(key in (a || {}))) {
-              diffs.push({ path, type: "added", value: b[key] });
-            } else if (!(key in (b || {}))) {
-              diffs.push({ path, type: "removed", value: a[key] });
-            } else if (typeof a[key] === "object" && typeof b[key] === "object" && a[key] !== null && b[key] !== null && !Array.isArray(a[key]) && !Array.isArray(b[key])) {
-              diffObj(a[key], b[key], path);
-            } else if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) {
-              diffs.push({ path, type: "changed", from: a[key], to: b[key] });
-            }
+            if (!(key in a)) diffs.push({ path, type: "added", value: b[key] });
+            else if (!(key in b)) diffs.push({ path, type: "removed", value: a[key] });
+            else deepDiff(a[key], b[key], path);
           }
         };
-        diffObj(objA, objB);
+        deepDiff(objA, objB);
         if (diffs.length === 0) {
           return { content: [{ type: "text", text: "No differences found." }] };
         }
