@@ -101,7 +101,7 @@ function checkTrial(toolName) {
 }
 
 const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
-const VERSION = "2.9.7";
+const VERSION = "2.9.8";
 const ALL_PRO_TOOLS = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","diff","number_base","lorem_ipsum","word_count","cidr","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_convert","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
 
 function trialBanner(toolName, remaining) {
@@ -1071,13 +1071,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           g = parseInt(hex.slice(2, 4), 16);
           b = parseInt(hex.slice(4, 6), 16);
         } else if (rgbMatch) {
-          r = parseInt(rgbMatch[1]);
-          g = parseInt(rgbMatch[2]);
-          b = parseInt(rgbMatch[3]);
+          r = Math.min(255, Math.max(0, parseInt(rgbMatch[1])));
+          g = Math.min(255, Math.max(0, parseInt(rgbMatch[2])));
+          b = Math.min(255, Math.max(0, parseInt(rgbMatch[3])));
         } else if (hslMatch) {
-          const h = parseInt(hslMatch[1]) / 360;
-          const s = parseInt(hslMatch[2]) / 100;
-          const l = parseInt(hslMatch[3]) / 100;
+          const h = (parseInt(hslMatch[1]) % 360) / 360;
+          const s = Math.min(100, Math.max(0, parseInt(hslMatch[2]))) / 100;
+          const l = Math.min(100, Math.max(0, parseInt(hslMatch[3]))) / 100;
           if (s === 0) {
             r = g = b = Math.round(l * 255);
           } else {
@@ -1457,13 +1457,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           .split(/\s+/)
           .filter(w => w.length > 0)
           .map(w => w.toLowerCase());
+        if (words.length === 0) throw new Error("No words found in input text");
+        const cap = w => w[0].toUpperCase() + w.slice(1);
         let result;
         switch (to) {
           case "camel":
-            result = words[0] + words.slice(1).map(w => w[0].toUpperCase() + w.slice(1)).join("");
+            result = words[0] + words.slice(1).map(cap).join("");
             break;
           case "pascal":
-            result = words.map(w => w[0].toUpperCase() + w.slice(1)).join("");
+            result = words.map(cap).join("");
             break;
           case "snake":
             result = words.join("_");
@@ -1475,18 +1477,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             result = words.map(w => w.toUpperCase()).join("_");
             break;
           case "title":
-            result = words.map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+            result = words.map(cap).join(" ");
             break;
           default:
             throw new Error(`Unknown case: ${to}`);
         }
         const all = {
-          camelCase: words[0] + words.slice(1).map(w => w[0].toUpperCase() + w.slice(1)).join(""),
-          PascalCase: words.map(w => w[0].toUpperCase() + w.slice(1)).join(""),
+          camelCase: words[0] + words.slice(1).map(cap).join(""),
+          PascalCase: words.map(cap).join(""),
           snake_case: words.join("_"),
           "kebab-case": words.join("-"),
           CONSTANT_CASE: words.map(w => w.toUpperCase()).join("_"),
-          "Title Case": words.map(w => w[0].toUpperCase() + w.slice(1)).join(" ")
+          "Title Case": words.map(cap).join(" ")
         };
         const output = [`Result: ${result}`, "", "All formats:"];
         for (const [k, v] of Object.entries(all)) output.push(`  ${k}: ${v}`);
@@ -1819,15 +1821,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const text = args.text;
         const utf8 = Buffer.byteLength(text, "utf-8");
         const utf16 = Buffer.byteLength(text, "utf-16le");
-        const ascii = text.length; // JS string length
         const chars = [...text].length; // actual character count (handles surrogate pairs)
         return {
           content: [{ type: "text", text: JSON.stringify({
             characters: chars,
             js_length: text.length,
             utf8_bytes: utf8,
-            utf16_bytes: utf16,
-            ascii_bytes: ascii
+            utf16_bytes: utf16
           }, null, 2) }]
         };
       }
