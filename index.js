@@ -109,7 +109,7 @@ function trialBanner(toolName, remaining) {
 
 const UPGRADE_MSG = (toolName) => {
   // Show other pro tools that still have trial uses
-  const allProTools = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","text_diff","number_base","lorem_ipsum","word_count","cidr_calc","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_batch","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
+  const allProTools = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","diff","number_base","lorem_ipsum","word_count","cidr","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_convert","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
   const available = allProTools.filter(t => t !== toolName && (trialUses.get(t) || 0) < TRIAL_LIMIT);
   const stillAvailable = available.length > 0
     ? `\n\nYou can still try these pro tools: ${available.slice(0, 5).join(", ")}${available.length > 5 ? ` (+${available.length - 5} more)` : ""}`
@@ -126,7 +126,7 @@ Restart your MCP client and all 45 tools are unlocked instantly.`;
 };
 
 const server = new Server(
-  { name: "mcp-devutils", version: "2.9.1" },
+  { name: "mcp-devutils", version: "2.9.2" },
   { capabilities: { tools: {} } }
 );
 
