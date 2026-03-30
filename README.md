@@ -6,6 +6,8 @@
 
 MCP server with **45 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
 
+**3,900+ developers have installed mcp-devutils** — join them in seconds.
+
 **16 tools free forever** + **try all 29 pro tools 3 times each** — [unlock permanently for $5](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05) (one-time).
 
 > "Generate a UUID" · "Hash this password with SHA-256" · "Decode this JWT" · "What does 0 15 10 * * ? mean in cron?" · "Convert this JSON to CSV" · "Diff these two configs"
