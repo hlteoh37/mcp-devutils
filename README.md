@@ -1,7 +1,7 @@
 # mcp-devutils
 
 [![npm version](https://img.shields.io/npm/v/mcp-devutils)](https://www.npmjs.com/package/mcp-devutils)
-[![npm downloads](https://img.shields.io/npm/dw/mcp-devutils)](https://www.npmjs.com/package/mcp-devutils)
+[![npm downloads](https://img.shields.io/npm/dw/mcp-devutils?label=weekly%20installs&color=brightgreen)](https://www.npmjs.com/package/mcp-devutils)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 MCP server with **45 developer utilities** for Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI assistant.
