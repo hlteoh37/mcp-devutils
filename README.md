@@ -80,6 +80,14 @@ Add to `.vscode/mcp.json` in your project:
 }
 ```
 
+---
+
+> 🔓 **Try before you buy** — Every pro tool works **3 times free**, no sign-up needed. Just install and ask your AI assistant to use any pro tool. Love it? Unlock all 29 pro tools permanently for **$5** (one-time, no subscription).
+>
+> **[Unlock all 45 tools for $5 →](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)**
+
+---
+
 ## Unlock Pro (29 extra tools) — $5 one-time
 
 1. **[Buy Pro License ($5)](https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05)**
