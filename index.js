@@ -101,7 +101,7 @@ function checkTrial(toolName) {
 }
 
 const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
-const VERSION = "2.9.12";
+const VERSION = "2.9.15";
 const ALL_PRO_TOOLS = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","diff","number_base","lorem_ipsum","word_count","cidr","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_convert","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
 
 function trialBanner(toolName, remaining) {
@@ -125,6 +125,16 @@ After purchase, your license key is emailed within 1 hour. Add it to your MCP co
 
 Restart your MCP client and all 45 tools are unlocked instantly.`;
 };
+
+// --- Free tool nudge: encourage trial of pro tools (~1 in 4 free tool calls) ---
+let freeCallCount = 0;
+const NUDGE_EXAMPLES = ["git_log_summary", "http_get", "semver_compare", "json_diff", "sql_format"];
+function getFreeToolNudge() {
+  freeCallCount++;
+  if (freeCallCount % 4 !== 0) return null;
+  const ex = NUDGE_EXAMPLES[freeCallCount % NUDGE_EXAMPLES.length];
+  return `\n\n💡 You have 3 free tries on any of the 29 pro tools — try \`${ex}\` today.`;
+}
 
 const server = new Server(
   { name: "mcp-devutils", version: VERSION },
@@ -2036,6 +2046,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (trialInfo && result && !result.isError && result.content && result.content[0]) {
     result.content[0].text += trialBanner(name, trialInfo.remaining);
   }
+
+  // Nudge free tool users to try pro tools (~1 in 4 calls)
+  const isFreeCall = !isPro && !isProUnlocked && name !== "devutils_status";
+  if (isFreeCall && result && !result.isError && result.content && result.content[0]) {
+    const nudge = getFreeToolNudge();
+    if (nudge) result.content[0].text += nudge;
+  }
+
   return result;
 });
 
