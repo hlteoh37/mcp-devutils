@@ -1,0 +1,14 @@
+# Smithery configuration for mcp-devutils
+# https://smithery.ai/docs/config
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties: {}
+    required: []
+  commandFunction: |-
+    () => ({
+      command: "npx",
+      args: ["-y", "mcp-devutils"]
+    })
