@@ -101,7 +101,7 @@ function checkTrial(toolName) {
 }
 
 const PRO_URL = "https://buy.stripe.com/bJe00jgjugyr5Fi5cv9Zm05";
-const VERSION = "2.9.15";
+const VERSION = "2.9.16";
 const ALL_PRO_TOOLS = ["nanoid","hex_encode","jwt_create","json_diff","json_query","csv_json","regex_replace","semver_compare","chmod_calc","diff","number_base","lorem_ipsum","word_count","cidr","case_convert","markdown_toc","env_parse","ip_info","password_strength","data_size","string_escape","char_info","sql_format","epoch_convert","aes_encrypt","aes_decrypt","rsa_keygen","scrypt_hash","byte_count"];
 
 function trialBanner(toolName, remaining) {
@@ -128,7 +128,7 @@ Restart your MCP client and all 45 tools are unlocked instantly.`;
 
 // --- Free tool nudge: encourage trial of pro tools (~1 in 4 free tool calls) ---
 let freeCallCount = 0;
-const NUDGE_EXAMPLES = ["git_log_summary", "http_get", "semver_compare", "json_diff", "sql_format"];
+const NUDGE_EXAMPLES = ["json_diff", "semver_compare", "sql_format", "nanoid", "regex_replace"];
 function getFreeToolNudge() {
   freeCallCount++;
   if (freeCallCount % 4 !== 0) return null;
